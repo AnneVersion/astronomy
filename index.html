@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sterrenhemel — Astronomie & Astrologie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+
+/* Stars background */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(251,191,36,.03) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+
+/* Tabs */
+.tabs{display:flex;gap:2px}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+
+/* Panels */
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:13px;font-weight:600;margin:12px 0 6px;color:var(--gold)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+/* Star chart */
+#skyCanvas{width:100%;border-radius:var(--r);cursor:grab;background:radial-gradient(circle,#0a1025 0%,#050810 100%)}
+#skyCanvas:active{cursor:grabbing}
+.sky-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.sky-controls label{font:500 11px var(--font);color:var(--tx2)}
+.sky-controls input,.sky-controls select{padding:5px 8px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:12px var(--mono);min-width:0}
+.sky-controls input[type="range"]{width:120px;accent-color:var(--gold)}
+.sky-info{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.sky-info span{font:11px var(--mono);color:var(--tx3)}
+
+/* Zodiac */
+.zodiac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.zodiac-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;transition:all .2s}
+.zodiac-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.zodiac-card.active{border-color:var(--gold);background:rgba(251,191,36,.06)}
+.zodiac-symbol{font-size:28px;margin-bottom:4px}
+.zodiac-name{font:600 12px var(--font)}
+.zodiac-dates{font:10px var(--mono);color:var(--tx3);margin-top:2px}
+
+/* Horoscope form */
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:end}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group label{font:500 10px var(--font);color:var(--tx3);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{padding:8px 10px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:13px var(--mono)}
+.btn{padding:8px 16px;border-radius:var(--rs);font:600 12px var(--font);cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-gold{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.1));color:var(--gold);border:1px solid rgba(251,191,36,.25)}
+.btn-gold:hover{background:linear-gradient(135deg,rgba(251,191,36,.3),rgba(251,191,36,.15));transform:translateY(-1px)}
+
+/* Result panel */
+.result-box{background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:14px;margin-top:12px}
+.result-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px}
+.result-row:last-child{border:none}
+.result-label{color:var(--tx3);display:flex;align-items:center;gap:5px}
+.result-val{font:600 12px var(--mono);color:var(--tx)}
+.result-val.gold{color:var(--gold)}
+.result-val.purple{color:var(--purple)}
+
+/* Planets table */
+.planet-table{width:100%;border-collapse:collapse;font-size:12px}
+.planet-table th{text-align:left;padding:6px 8px;color:var(--tx3);font:600 10px var(--font);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-bd)}
+.planet-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.02)}
+.planet-table tr:hover{background:rgba(255,255,255,.02)}
+.planet-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.retro{color:var(--red);font:700 9px var(--mono)}
+
+/* Moon phase */
+.moon-container{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.moon-visual{width:100px;height:100px;position:relative;flex-shrink:0}
+.moon-info{flex:1;min-width:150px}
+
+/* Precessie */
+.precessie-viz{text-align:center;padding:20px}
+.shift-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}
+.shift-table th{padding:6px 8px;background:rgba(251,191,36,.06);color:var(--gold);font:600 10px var(--font);text-transform:uppercase;letter-spacing:.5px}
+.shift-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.03);text-align:center}
+.shift-table td:first-child{text-align:left}
+.shift-diff{color:var(--red);font-weight:600}
+
+@media(max-width:768px){
+  .tabs{overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .sky-controls{gap:4px}
+  .zodiac-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-inner">
+    <div class="logo"><span class="mi">auto_awesome</span> Sterrenhemel</div>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="showPanel('sky')"><span class="mi">nightlight</span> Sterrenkaart</button>
+      <button class="tab" onclick="showPanel('horoscope')"><span class="mi">stars</span> Horoscoop</button>
+      <button class="tab" onclick="showPanel('precessie')"><span class="mi">public</span> Precessie</button>
+      <button class="tab" onclick="showPanel('planeten')"><span class="mi">rocket</span> Planeten</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============================================================ -->
+<!-- PANEL 1: STERRENKAART -->
+<!-- ============================================================ -->
+<div class="panel active" id="panelSky">
+  <div class="card">
+    <h2><span class="mi" style="color:var(--gold)">nightlight</span> Interactieve Sterrenkaart</h2>
+    <div class="sky-controls">
+      <div class="form-group">
+        <label>Datum & tijd</label>
+        <input type="datetime-local" id="skyDate" onchange="updateSky()">
+      </div>
+      <div class="form-group">
+        <label>Locatie</label>
+        <select id="skyLocation" onchange="updateSky()">
+          <option value="52.37,4.90">Amsterdam</option>
+          <option value="52.09,5.12">Utrecht</option>
+          <option value="53.22,6.57">Groningen</option>
+          <option value="50.85,5.69">Maastricht</option>
+          <option value="51.44,5.47">Eindhoven</option>
+          <option value="51.92,4.48">Rotterdam</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Zoom</label>
+        <input type="range" id="skyZoom" min="0.5" max="3" step="0.1" value="1" oninput="updateSky()">
+      </div>
+      <button class="btn btn-gold" onclick="skyNow()"><span class="mi" style="font-size:14px">schedule</span> Nu</button>
+    </div>
+    <canvas id="skyCanvas" width="1000" height="600"></canvas>
+    <div class="sky-info">
+      <span id="skyInfoTime"></span>
+      <span id="skyInfoLoc"></span>
+      <span id="skyInfoSun"></span>
+      <span id="skyInfoMoon"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANEL 2: HOROSCOOP -->
+<!-- ============================================================ -->
+<div class="panel" id="panelHoroscope">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--purple)">stars</span> Geboortehoroscoop</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">Bereken je sterrenbeeld op basis van je geboortedatum. We laten zien wat de westerse astrologie zegt (tropische dierenriem) en wat astronomisch klopt (siderische dierenriem met precessie).</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Geboortedatum</label>
+            <input type="date" id="birthDate" value="1990-06-15">
+          </div>
+          <div class="form-group">
+            <label>Geboortetijd</label>
+            <input type="time" id="birthTime" value="12:00">
+          </div>
+          <div class="form-group">
+            <label>Geboorteplaats</label>
+            <select id="birthPlace">
+              <option value="52.37,4.90">Amsterdam</option>
+              <option value="52.09,5.12">Utrecht</option>
+              <option value="53.22,6.57">Groningen</option>
+              <option value="50.85,5.69">Maastricht</option>
+              <option value="51.44,5.47">Eindhoven</option>
+              <option value="51.92,4.48">Rotterdam</option>
+              <option value="52.22,6.90">Enschede</option>
+              <option value="51.81,4.67">Dordrecht</option>
+            </select>
+          </div>
+          <button class="btn btn-gold" onclick="calcHoroscope()"><span class="mi" style="font-size:14px">calculate</span> Bereken</button>
+        </div>
+        <div id="horoscopeResult"></div>
+      </div>
+    </div>
+    <div class="col" style="max-width:380px">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">grid_view</span> Dierenriem</h2>
+        <div class="zodiac-grid" id="zodiacGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANEL 3: PRECESSIE -->
+<!-- ============================================================ -->
+<div class="panel" id="panelPrecessie">
+  <div class="card">
+    <h2><span class="mi" style="color:var(--cyan)">public</span> Precessie van de Aardas</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">
+      De aardas maakt in ~26.000 jaar een volledige cirkel (precessie). Hierdoor verschuift het lentepunt langzaam door de sterrenbeelden.
+      Rond het jaar 0 klopte de tropische dierenriem nog met de werkelijke sterrenbeelden. Sindsdien is alles ~28&deg; opgeschoven.
+      Je astrologische sterrenbeeld is dus waarschijnlijk niet het sterrenbeeld waar de zon werkelijk in stond bij je geboorte!
+    </p>
+    <div class="row">
+      <div class="col">
+        <div class="precessie-viz">
+          <canvas id="precessCanvas" width="400" height="400" style="max-width:100%;border-radius:var(--r)"></canvas>
+          <div style="margin-top:12px">
+            <label style="font:500 11px var(--font);color:var(--tx2)">Jaar: <span id="precessYear">2024</span></label><br>
+            <input type="range" id="precessSlider" min="-2000" max="4000" value="2024" step="10" oninput="updatePrecess()" style="width:100%;accent-color:var(--gold);margin-top:6px">
+          </div>
+          <div style="font:11px var(--mono);color:var(--tx3);margin-top:6px">
+            Verschuiving: <span id="precessShift" style="color:var(--gold)">28.0&deg;</span> | Lentepunt in: <span id="precessSign" style="color:var(--purple)">Vissen</span>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <h3>Tropisch vs. Siderisch sterrenbeeld</h3>
+        <p style="font-size:11px;color:var(--tx2);margin-bottom:8px">De westerse astrologie gebruikt de <b>tropische</b> dierenriem: vaste datums die rond 150 n.Chr. door Ptolemaeus zijn vastgelegd.
+        De <b>siderische</b> (astronomische) dierenriem volgt de werkelijke posities van de sterrenbeelden aan de hemel, gebaseerd op IAU-grenzen.</p>
+        <table class="shift-table" id="shiftTable"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANEL 4: PLANETEN -->
+<!-- ============================================================ -->
+<div class="panel" id="panelPlaneten">
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--blue)">rocket</span> Planeetposities</h2>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+          <input type="datetime-local" id="planetDate" onchange="updatePlanets()" style="padding:5px 8px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:12px var(--mono)">
+          <button class="btn btn-gold" onclick="planetNow()"><span class="mi" style="font-size:14px">schedule</span> Nu</button>
+        </div>
+        <table class="planet-table" id="planetTable">
+          <thead><tr><th>Planeet</th><th>Sterrenbeeld</th><th>RA</th><th>Dec</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col" style="max-width:320px">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--tx2)">dark_mode</span> Maanfase</h2>
+        <div class="moon-container">
+          <div class="moon-visual"><canvas id="moonCanvas" width="100" height="100"></canvas></div>
+          <div class="moon-info">
+            <div style="font:700 16px var(--font);color:var(--tx)" id="moonPhaseName">Volle maan</div>
+            <div style="font:12px var(--mono);color:var(--tx2)" id="moonPhaseAge">Dag 14.2</div>
+            <div style="font:11px var(--mono);color:var(--tx3)" id="moonIllum">Verlicht: 98%</div>
+            <div style="font:11px var(--mono);color:var(--tx3);margin-top:6px" id="moonRiseSet"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">event</span> Komende Gebeurtenissen</h2>
+        <div id="eventsList" style="font-size:12px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ============================================================
+// DATA: Sterren, sterrenbeelden, dierenriem
+// ============================================================
+
+var ZODIAC = [
+  {id:'aries',     symbol:'\u2648',name:'Ram',        nameEn:'Aries',     element:'Vuur',   ruler:'Mars',     tropisch:'21 mrt \u2013 19 apr',  siderisch:'18 apr \u2013 13 mei', tropStart:[3,21],tropEnd:[4,19], siderStart:[4,18],siderEnd:[5,13], color:'#ef4444',
+   desc:'Energiek, moedig en competitief. De Ram is een geboren leider die niet bang is om nieuwe paden te bewandelen.'},
+  {id:'taurus',    symbol:'\u2649',name:'Stier',      nameEn:'Taurus',    element:'Aarde',  ruler:'Venus',    tropisch:'20 apr \u2013 20 mei',  siderisch:'14 mei \u2013 19 jun', tropStart:[4,20],tropEnd:[5,20], siderStart:[5,14],siderEnd:[6,19], color:'#22c55e',
+   desc:'Betrouwbaar, geduldig en praktisch. De Stier houdt van comfort, schoonheid en de fijne dingen des levens.'},
+  {id:'gemini',    symbol:'\u264A',name:'Tweelingen',  nameEn:'Gemini',    element:'Lucht',  ruler:'Mercurius',tropisch:'21 mei \u2013 20 jun',  siderisch:'20 jun \u2013 20 jul', tropStart:[5,21],tropEnd:[6,20], siderStart:[6,20],siderEnd:[7,20], color:'#fbbf24',
+   desc:'Nieuwsgierig, aanpasbaar en communicatief. Tweelingen zijn de sociale vlinders van de dierenriem.'},
+  {id:'cancer',    symbol:'\u264B',name:'Kreeft',      nameEn:'Cancer',    element:'Water',  ruler:'Maan',     tropisch:'21 jun \u2013 22 jul',  siderisch:'21 jul \u2013 9 aug',  tropStart:[6,21],tropEnd:[7,22], siderStart:[7,21],siderEnd:[8,9],  color:'#94a3b8',
+   desc:'Zorgzaam, intu\u00eftief en beschermend. De Kreeft is diep verbonden met huis, familie en emotie.'},
+  {id:'leo',       symbol:'\u264C',name:'Leeuw',       nameEn:'Leo',       element:'Vuur',   ruler:'Zon',      tropisch:'23 jul \u2013 22 aug',  siderisch:'10 aug \u2013 15 sep', tropStart:[7,23],tropEnd:[8,22], siderStart:[8,10],siderEnd:[9,15], color:'#f97316',
+   desc:'Creatief, hartstochtelijk en grootmoedig. De Leeuw straalt van nature en trekt de aandacht.'},
+  {id:'virgo',     symbol:'\u264D',name:'Maagd',       nameEn:'Virgo',     element:'Aarde',  ruler:'Mercurius',tropisch:'23 aug \u2013 22 sep',  siderisch:'16 sep \u2013 30 okt', tropStart:[8,23],tropEnd:[9,22], siderStart:[9,16],siderEnd:[10,30], color:'#a3e635',
+   desc:'Analytisch, behulpzaam en bescheiden. De Maagd let op details en streeft naar perfectie.'},
+  {id:'libra',     symbol:'\u264E',name:'Weegschaal',  nameEn:'Libra',     element:'Lucht',  ruler:'Venus',    tropisch:'23 sep \u2013 22 okt',  siderisch:'31 okt \u2013 22 nov', tropStart:[9,23],tropEnd:[10,22], siderStart:[10,31],siderEnd:[11,22], color:'#ec4899',
+   desc:'Harmonieus, diplomatiek en rechtvaardig. De Weegschaal zoekt balans in alles.'},
+  {id:'scorpio',   symbol:'\u264F',name:'Schorpioen',  nameEn:'Scorpio',   element:'Water',  ruler:'Pluto',    tropisch:'23 okt \u2013 21 nov',  siderisch:'23 nov \u2013 29 nov', tropStart:[10,23],tropEnd:[11,21], siderStart:[11,23],siderEnd:[11,29], color:'#991b1b',
+   desc:'Intens, vastberaden en mysterieus. De Schorpioen gaat tot de kern van alles.'},
+  {id:'sagittarius',symbol:'\u2650',name:'Boogschutter',nameEn:'Sagittarius',element:'Vuur', ruler:'Jupiter',  tropisch:'22 nov \u2013 21 dec',  siderisch:'17 dec \u2013 19 jan', tropStart:[11,22],tropEnd:[12,21], siderStart:[12,17],siderEnd:[1,19], color:'#7c3aed',
+   desc:'Avontuurlijk, optimistisch en filosofisch. De Boogschutter zoekt kennis en vrijheid.'},
+  {id:'capricorn', symbol:'\u2651',name:'Steenbok',    nameEn:'Capricorn', element:'Aarde',  ruler:'Saturnus', tropisch:'22 dec \u2013 19 jan',  siderisch:'20 jan \u2013 15 feb', tropStart:[12,22],tropEnd:[1,19], siderStart:[1,20],siderEnd:[2,15], color:'#6b7280',
+   desc:'Ambitieus, gedisciplineerd en verantwoordelijk. De Steenbok klimt gestaag naar de top.'},
+  {id:'aquarius',  symbol:'\u2652',name:'Waterman',    nameEn:'Aquarius',  element:'Lucht',  ruler:'Uranus',   tropisch:'20 jan \u2013 18 feb',  siderisch:'16 feb \u2013 11 mrt', tropStart:[1,20],tropEnd:[2,18], siderStart:[2,16],siderEnd:[3,11], color:'#06b6d4',
+   desc:'Onafhankelijk, origineel en humanitair. De Waterman denkt vooruit en wil de wereld verbeteren.'},
+  {id:'pisces',    symbol:'\u2653',name:'Vissen',      nameEn:'Pisces',    element:'Water',  ruler:'Neptunus', tropisch:'19 feb \u2013 20 mrt',  siderisch:'12 mrt \u2013 17 apr', tropStart:[2,19],tropEnd:[3,20], siderStart:[3,12],siderEnd:[4,17], color:'#2563eb',
+   desc:'Empathisch, creatief en dromerig. Vissen voelen de emoties van anderen en leven in een rijke innerlijke wereld.'}
+];
+
+// Ecliptic longitude boundaries for tropical zodiac (0=Aries vernal equinox)
+var TROPICAL_BOUNDS = [0,30,60,90,120,150,180,210,240,270,300,330,360];
+// Approximate sidereal offset (ayanamsa): ~24.1 degrees in 2024, growing ~1 degree per 72 years
+function getAyanamsa(year){ return 24.1 + (year - 2024) / 72; }
+
+// Bright stars catalog: [name, RA hours, Dec degrees, magnitude]
+var BRIGHT_STARS = [
+  ['Sirius',6.752,-16.72,-1.46],['Canopus',6.399,-52.70,-0.74],['Arcturus',14.261,19.18,-0.05],
+  ['Vega',18.616,38.78,0.03],['Capella',5.278,46.00,0.08],['Rigel',5.242,-8.20,0.13],
+  ['Procyon',7.655,5.22,0.34],['Betelgeuse',5.920,7.41,0.42],['Altair',19.846,8.87,0.76],
+  ['Aldebaran',4.599,16.51,0.86],['Antares',16.490,-26.43,0.96],['Spica',13.420,-11.16,0.97],
+  ['Pollux',7.755,28.03,1.14],['Fomalhaut',22.961,-29.62,1.16],['Deneb',20.690,45.28,1.25],
+  ['Regulus',10.140,11.97,1.35],['Castor',7.577,31.89,1.58],['Bellatrix',5.419,6.35,1.64],
+  ['Alnilam',5.603,-1.20,1.69],['Alnitak',5.679,-1.94,1.77],['Mintaka',5.533,-0.30,2.23],
+  ['Dubhe',11.062,61.75,1.79],['Merak',11.031,56.38,2.37],['Polaris',2.530,89.26,1.98],
+  ['Mizar',13.399,54.93,2.27],['Alkaid',13.793,49.31,1.86],
+  // Zodiac constellation key stars
+  ['Hamal',2.120,23.46,2.00],['Sheratan',1.911,20.81,2.64], // Aries
+  ['Elnath',5.438,28.61,1.65], // Taurus
+  ['Alhena',6.629,16.40,1.93],['Wasat',7.335,21.98,3.53], // Gemini
+  ['Acubens',8.975,11.86,4.26], // Cancer
+  ['Algieba',10.333,19.84,2.28],['Denebola',11.818,14.57,2.14], // Leo
+  ['Vindemiatrix',13.036,10.96,2.83],['Zavijava',11.845,1.76,3.61], // Virgo
+  ['Zubenelgenubi',14.848,-16.04,2.75],['Zubeneschamali',15.283,-9.38,2.61], // Libra
+  ['Dschubba',16.006,-22.62,2.32],['Shaula',17.560,-37.10,1.63], // Scorpius
+  ['Kaus Australis',18.403,-34.38,1.85],['Nunki',18.921,-26.30,2.02], // Sagittarius
+  ['Dabih',20.350,-14.78,3.08],['Algedi',20.294,-12.51,3.57], // Capricorn
+  ['Sadalmelik',22.097,-0.32,2.96],['Sadalsuud',21.526,-5.57,2.91], // Aquarius
+  ['Alrescha',2.034,2.76,3.82], // Pisces
+];
+
+// Zodiac constellation line patterns: [[star_index_pairs]]
+// Using indices into BRIGHT_STARS - simplified patterns
+var ZODIAC_CONSTELLATIONS = {
+  'Aries':     [[26,27]],
+  'Taurus':    [[9,28]],
+  'Gemini':    [[6,16,29,30]],
+  'Leo':       [[15,32,33]],
+  'Scorpius':  [[10,34,35]],
+  'Sagittarius':[[36,37]],
+  'Aquarius':  [[40,41]],
+};
+
+var PLANETS = [
+  {body:'Mercury', name:'Mercurius', color:'#94a3b8', size:3},
+  {body:'Venus',   name:'Venus',     color:'#fbbf24', size:4},
+  {body:'Mars',    name:'Mars',      color:'#ef4444', size:4},
+  {body:'Jupiter', name:'Jupiter',   color:'#f97316', size:5},
+  {body:'Saturn',  name:'Saturnus',  color:'#a3e635', size:5},
+  {body:'Uranus',  name:'Uranus',    color:'#06b6d4', size:3},
+  {body:'Neptune', name:'Neptunus',  color:'#3b82f6', size:3},
+];
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('panel'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+  event.target.closest('.tab').classList.add('active');
+  if(id==='sky') updateSky();
+  if(id==='planeten'){ planetNow(); }
+  if(id==='precessie') updatePrecess();
+}
+
+// ============================================================
+// STAR CHART
+// ============================================================
+var _skyDragStart = null;
+var _skyRotX = 0, _skyRotY = 0;
+
+function skyNow(){
+  var now = new Date();
+  var offset = now.getTimezoneOffset();
+  var local = new Date(now.getTime() - offset * 60000);
+  document.getElementById('skyDate').value = local.toISOString().slice(0,16);
+  updateSky();
+}
+
+function getObserver(){
+  var loc = document.getElementById('skyLocation').value.split(',');
+  return new Astronomy.Observer(parseFloat(loc[0]), parseFloat(loc[1]), 0);
+}
+
+function getSkyDate(){
+  var val = document.getElementById('skyDate').value;
+  return val ? new Date(val) : new Date();
+}
+
+function raDecToAltAz(ra, dec, date, observer){
+  return Astronomy.Horizon(date, observer, ra, dec, 'normal');
+}
+
+function altAzToCanvas(alt, az, cx, cy, radius, zoom){
+  // Stereographic projection from zenith
+  var r = radius * (90 - alt) / 90 * zoom;
+  var azRad = az * Math.PI / 180;
+  var x = cx + r * Math.sin(azRad);
+  var y = cy - r * Math.cos(azRad);
+  return {x:x, y:y, visible: alt > -5};
+}
+
+function updateSky(){
+  var canvas = document.getElementById('skyCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2;
+  var radius = Math.min(W,H)/2 - 20;
+  var zoom = parseFloat(document.getElementById('skyZoom').value) || 1;
+  var date = getSkyDate();
+  var observer = getObserver();
+
+  // Clear
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0,0,W,H);
+
+  // Draw horizon circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(148,163,184,.15)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Cardinal directions
+  ctx.font = '11px "DM Sans"';
+  ctx.fillStyle = 'rgba(148,163,184,.4)';
+  ctx.textAlign = 'center';
+  ctx.fillText('N', cx, cy - radius - 6);
+  ctx.fillText('Z', cx, cy + radius + 14);
+  ctx.fillText('O', cx + radius + 12, cy + 4);
+  ctx.fillText('W', cx - radius - 12, cy + 4);
+
+  // Altitude circles
+  for(var a = 30; a <= 60; a += 30){
+    var r = radius * (90 - a) / 90 * zoom;
+    if(r > 0 && r < radius){
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(148,163,184,.06)';
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(148,163,184,.2)';
+      ctx.font = '9px "Space Mono"';
+      ctx.fillText(a+'\u00b0', cx+r+8, cy);
+    }
+  }
+
+  // Draw ecliptic
+  ctx.beginPath();
+  var eclFirst = true;
+  for(var ecl = 0; ecl < 360; ecl += 2){
+    var eclRa = ecl / 15; // rough
+    var eclDec = 23.44 * Math.sin(ecl * Math.PI / 180);
+    var hor = raDecToAltAz(eclRa, eclDec, date, observer);
+    var p = altAzToCanvas(hor.altitude, hor.azimuth, cx, cy, radius, zoom);
+    if(p.visible){
+      if(eclFirst){ ctx.moveTo(p.x, p.y); eclFirst=false; }
+      else ctx.lineTo(p.x, p.y);
+    }
+  }
+  ctx.strokeStyle = 'rgba(251,191,36,.15)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Draw stars
+  BRIGHT_STARS.forEach(function(star){
+    var hor = raDecToAltAz(star[1], star[2], date, observer);
+    var p = altAzToCanvas(hor.altitude, hor.azimuth, cx, cy, radius, zoom);
+    if(!p.visible) return;
+    if(p.x < 0 || p.x > W || p.y < 0 || p.y > H) return;
+
+    var mag = star[3];
+    var size = Math.max(0.5, 3.5 - mag * 0.8);
+    var alpha = Math.max(0.2, Math.min(1, 1.2 - mag * 0.25));
+
+    // Glow
+    if(mag < 1.5){
+      var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size*3);
+      grad.addColorStop(0, 'rgba(255,255,240,'+alpha*0.3+')');
+      grad.addColorStop(1, 'rgba(255,255,240,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(p.x-size*3, p.y-size*3, size*6, size*6);
+    }
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, size, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,240,'+alpha+')';
+    ctx.fill();
+
+    // Label bright stars
+    if(mag < 1.5){
+      ctx.font = '8px "DM Sans"';
+      ctx.fillStyle = 'rgba(148,163,184,.5)';
+      ctx.textAlign = 'left';
+      ctx.fillText(star[0], p.x + size + 3, p.y + 3);
+    }
+  });
+
+  // Draw planets
+  var bodyNames = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune'];
+  var bodyColors = {'Sun':'#fbbf24','Moon':'#e2e8f0','Mercury':'#94a3b8','Venus':'#fbbf24','Mars':'#ef4444','Jupiter':'#f97316','Saturn':'#a3e635','Uranus':'#06b6d4','Neptune':'#3b82f6'};
+  var bodyNamesNL = {'Sun':'Zon','Moon':'Maan','Mercury':'Mercurius','Venus':'Venus','Mars':'Mars','Jupiter':'Jupiter','Saturn':'Saturnus','Uranus':'Uranus','Neptune':'Neptunus'};
+  var bodySizes = {'Sun':6,'Moon':5,'Mercury':2.5,'Venus':3.5,'Mars':3,'Jupiter':4,'Saturn':3.5,'Uranus':2.5,'Neptune':2.5};
+
+  bodyNames.forEach(function(bname){
+    try {
+      var eq = Astronomy.Equator(bname, date, observer, true, true);
+      var hor = Astronomy.Horizon(date, observer, eq.ra, eq.dec, 'normal');
+      var p = altAzToCanvas(hor.altitude, hor.azimuth, cx, cy, radius, zoom);
+      if(!p.visible) return;
+      if(p.x < 0 || p.x > W || p.y < 0 || p.y > H) return;
+
+      var col = bodyColors[bname] || '#fff';
+      var sz = bodySizes[bname] || 3;
+
+      // Glow
+      var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz*4);
+      grad.addColorStop(0, col.replace(')', ',.3)').replace('rgb','rgba'));
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(p.x-sz*4, p.y-sz*4, sz*8, sz*8);
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, sz, 0, Math.PI*2);
+      ctx.fillStyle = col;
+      ctx.fill();
+
+      ctx.font = '9px "DM Sans"';
+      ctx.fillStyle = col;
+      ctx.textAlign = 'left';
+      ctx.fillText(bodyNamesNL[bname], p.x + sz + 4, p.y + 3);
+    } catch(e){}
+  });
+
+  // Update info bar
+  try {
+    var sunEq = Astronomy.Equator('Sun', date, observer, true, true);
+    var sunHor = Astronomy.Horizon(date, observer, sunEq.ra, sunEq.dec, 'normal');
+    var moonEq = Astronomy.Equator('Moon', date, observer, true, true);
+    var moonHor = Astronomy.Horizon(date, observer, moonEq.ra, moonEq.dec, 'normal');
+    var phase = Astronomy.MoonPhase(date);
+
+    document.getElementById('skyInfoTime').textContent = date.toLocaleString('nl-NL');
+    var loc = document.getElementById('skyLocation').value.split(',');
+    document.getElementById('skyInfoLoc').textContent = 'Lat '+loc[0]+' Lon '+loc[1];
+    document.getElementById('skyInfoSun').textContent = 'Zon: '+sunHor.altitude.toFixed(1)+'\u00b0 alt';
+    document.getElementById('skyInfoMoon').textContent = 'Maan: '+moonHor.altitude.toFixed(1)+'\u00b0 alt \u00b7 fase '+phase.toFixed(0)+'\u00b0';
+  } catch(e){}
+}
+
+// Canvas drag
+(function(){
+  var canvas = document.getElementById('skyCanvas');
+  canvas.addEventListener('mousedown', function(e){ _skyDragStart = {x:e.clientX, y:e.clientY}; });
+  canvas.addEventListener('mousemove', function(e){
+    if(!_skyDragStart) return;
+    _skyRotX += (e.clientX - _skyDragStart.x) * 0.5;
+    _skyRotY += (e.clientY - _skyDragStart.y) * 0.5;
+    _skyDragStart = {x:e.clientX, y:e.clientY};
+    updateSky();
+  });
+  canvas.addEventListener('mouseup', function(){ _skyDragStart = null; });
+  canvas.addEventListener('mouseleave', function(){ _skyDragStart = null; });
+  canvas.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var z = document.getElementById('skyZoom');
+    z.value = Math.max(0.5, Math.min(3, parseFloat(z.value) - e.deltaY * 0.002));
+    updateSky();
+  });
+})();
+
+// ============================================================
+// HOROSCOPE
+// ============================================================
+function getSunEclipticLong(date){
+  try {
+    var eq = Astronomy.Equator('Sun', date, new Astronomy.Observer(0,0,0), true, true);
+    var ecl = Astronomy.Ecliptic(eq.vec);
+    return ecl.elon;
+  } catch(e){ return 0; }
+}
+
+function getTropicalSign(elon){
+  var idx = Math.floor(elon / 30) % 12;
+  return ZODIAC[idx];
+}
+
+function getSiderealSign(elon, year){
+  var ayan = getAyanamsa(year);
+  var siderealLon = (elon - ayan + 360) % 360;
+  var idx = Math.floor(siderealLon / 30) % 12;
+  return ZODIAC[idx];
+}
+
+function calcHoroscope(){
+  var dateStr = document.getElementById('birthDate').value;
+  var timeStr = document.getElementById('birthTime').value || '12:00';
+  var locStr = document.getElementById('birthPlace').value;
+  var loc = locStr.split(',');
+  var lat = parseFloat(loc[0]), lon = parseFloat(loc[1]);
+
+  var date = new Date(dateStr + 'T' + timeStr + ':00');
+  if(isNaN(date.getTime())){ alert('Ongeldige datum'); return; }
+
+  var observer = new Astronomy.Observer(lat, lon, 0);
+  var year = date.getFullYear();
+
+  // Sun position
+  var sunLon = getSunEclipticLong(date);
+  var tropSign = getTropicalSign(sunLon);
+  var siderSign = getSiderealSign(sunLon, year);
+  var ayan = getAyanamsa(year);
+
+  // Planet positions
+  var planetPositions = [];
+  PLANETS.forEach(function(pl){
+    try {
+      var eq = Astronomy.Equator(pl.body, date, observer, true, true);
+      var ecl = Astronomy.Ecliptic(eq.vec);
+      var sign = getTropicalSign(ecl.elon);
+      planetPositions.push({name:pl.name, sign:sign.name, lon:ecl.elon, color:pl.color});
+    } catch(e){}
+  });
+
+  // Moon
+  try {
+    var moonEq = Astronomy.Equator('Moon', date, observer, true, true);
+    var moonEcl = Astronomy.Ecliptic(moonEq.vec);
+    var moonSign = getTropicalSign(moonEcl.elon);
+    planetPositions.unshift({name:'Maan', sign:moonSign.name, lon:moonEcl.elon, color:'#e2e8f0'});
+  } catch(e){}
+
+  // Build result HTML
+  var html = '<div class="result-box">';
+  html += '<h3 style="color:var(--gold);margin-top:0">Resultaat voor '+date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})+' '+timeStr+'</h3>';
+
+  // Tropical
+  html += '<div style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap">';
+  html += '<div style="flex:1;min-width:200px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:var(--rs);padding:12px;text-align:center">';
+  html += '<div style="font-size:36px">'+tropSign.symbol+'</div>';
+  html += '<div style="font:700 14px var(--font);color:var(--gold)">'+tropSign.name+'</div>';
+  html += '<div style="font:10px var(--mono);color:var(--tx3)">Tropisch (astrologie)</div>';
+  html += '<div style="font:11px var(--font);color:var(--tx2);margin-top:6px">'+tropSign.desc+'</div>';
+  html += '</div>';
+
+  html += '<div style="flex:1;min-width:200px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);border-radius:var(--rs);padding:12px;text-align:center">';
+  html += '<div style="font-size:36px">'+siderSign.symbol+'</div>';
+  html += '<div style="font:700 14px var(--font);color:var(--purple)">'+siderSign.name+'</div>';
+  html += '<div style="font:10px var(--mono);color:var(--tx3)">Siderisch (astronomie)</div>';
+  html += '<div style="font:11px var(--font);color:var(--tx2);margin-top:6px">'+siderSign.desc+'</div>';
+  html += '</div>';
+  html += '</div>';
+
+  if(tropSign.id !== siderSign.id){
+    html += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:var(--rs);padding:10px;font-size:11px;margin-bottom:12px">';
+    html += '<span class="mi" style="color:var(--red);font-size:14px;vertical-align:-3px">info</span> ';
+    html += '<b style="color:var(--red)">Je tekens verschillen!</b> Door precessie (verschuiving aardas van ~'+ayan.toFixed(1)+'\u00b0) staat de zon astronomisch gezien in een ander sterrenbeeld dan de astrologie zegt. ';
+    html += 'De tropische dierenriem is ~2000 jaar geleden vastgelegd en sindsdien niet meer bijgewerkt.';
+    html += '</div>';
+  }
+
+  // Planet table
+  html += '<h3 style="color:var(--blue)">Planeetposities bij geboorte</h3>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+  planetPositions.forEach(function(pp){
+    html += '<div style="background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:5px">';
+    html += '<span class="planet-dot" style="background:'+pp.color+';width:8px;height:8px"></span>';
+    html += '<b>'+pp.name+'</b> in <span style="color:var(--gold)">'+pp.sign+'</span>';
+    html += ' <span style="color:var(--tx3);font:9px var(--mono)">'+pp.lon.toFixed(1)+'\u00b0</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '</div>';
+  document.getElementById('horoscopeResult').innerHTML = html;
+}
+
+// Build zodiac grid
+function buildZodiacGrid(){
+  var html = '';
+  ZODIAC.forEach(function(z){
+    html += '<div class="zodiac-card" onclick="selectZodiac(\''+z.id+'\')" id="zcard_'+z.id+'">';
+    html += '<div class="zodiac-symbol">'+z.symbol+'</div>';
+    html += '<div class="zodiac-name">'+z.name+'</div>';
+    html += '<div class="zodiac-dates">'+z.tropisch+'</div>';
+    html += '</div>';
+  });
+  document.getElementById('zodiacGrid').innerHTML = html;
+}
+
+function selectZodiac(id){
+  document.querySelectorAll('.zodiac-card').forEach(function(c){ c.classList.remove('active'); });
+  var el = document.getElementById('zcard_'+id);
+  if(el) el.classList.add('active');
+  var z = ZODIAC.filter(function(x){ return x.id===id; })[0];
+  if(!z) return;
+  // Show info below the grid
+  var parent = document.getElementById('zodiacGrid').parentElement;
+  var existing = document.getElementById('zodiacDetail');
+  if(existing) existing.remove();
+  var div = document.createElement('div');
+  div.id = 'zodiacDetail';
+  div.className = 'result-box';
+  div.style.marginTop = '12px';
+  div.innerHTML = '<div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">'+
+    '<span style="font-size:32px">'+z.symbol+'</span>'+
+    '<div><div style="font:700 14px var(--font)">'+z.name+' <span style="color:var(--tx3);font-weight:400;font-size:11px">('+z.nameEn+')</span></div>'+
+    '<div style="font:10px var(--mono);color:var(--tx3)">'+z.element+' \u00b7 Heerser: '+z.ruler+'</div></div></div>'+
+    '<div style="font-size:12px;color:var(--tx2);margin-bottom:8px">'+z.desc+'</div>'+
+    '<div class="result-row"><span class="result-label">Tropisch (astrologie)</span><span class="result-val gold">'+z.tropisch+'</span></div>'+
+    '<div class="result-row"><span class="result-label">Siderisch (astronomie)</span><span class="result-val purple">'+z.siderisch+'</span></div>';
+  parent.appendChild(div);
+}
+
+// ============================================================
+// PRECESSIE
+// ============================================================
+function updatePrecess(){
+  var year = parseInt(document.getElementById('precessSlider').value);
+  document.getElementById('precessYear').textContent = year;
+
+  // Calculate shift: ~1 degree per 72 years from ~150 AD reference point
+  var shift = (year - 150) / 72;  // degrees of precession since Ptolemy
+  var shiftMod = ((shift % 360) + 360) % 360;
+
+  document.getElementById('precessShift').textContent = shiftMod.toFixed(1) + '\u00b0';
+
+  // Which constellation is the vernal equinox in?
+  var vpIdx = Math.floor(((360 - shiftMod) % 360) / 30) % 12;
+  document.getElementById('precessSign').textContent = ZODIAC[vpIdx].name;
+
+  // Draw precession visualization
+  drawPrecessCanvas(year, shiftMod);
+}
+
+function drawPrecessCanvas(year, shift){
+  var canvas = document.getElementById('precessCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2;
+  var R = Math.min(W,H)/2 - 40;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0,0,W,H);
+
+  // Draw zodiac wheel
+  ZODIAC.forEach(function(z, i){
+    var startAngle = (i * 30 - 90) * Math.PI / 180;
+    var endAngle = ((i+1) * 30 - 90) * Math.PI / 180;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = z.color + '15';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148,163,184,.15)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Label
+    var midAngle = (startAngle + endAngle) / 2;
+    var lx = cx + (R * 0.75) * Math.cos(midAngle);
+    var ly = cy + (R * 0.75) * Math.sin(midAngle);
+    ctx.font = '16px serif';
+    ctx.fillStyle = z.color + '80';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(z.symbol, lx, ly);
+  });
+
+  // Draw vernal equinox arrow (shifts with precession)
+  var vpAngle = (-shift - 90) * Math.PI / 180;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + (R + 15) * Math.cos(vpAngle), cy + (R + 15) * Math.sin(vpAngle));
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Arrow head
+  var ax = cx + (R + 15) * Math.cos(vpAngle);
+  var ay = cy + (R + 15) * Math.sin(vpAngle);
+  ctx.beginPath();
+  ctx.arc(ax, ay, 4, 0, Math.PI*2);
+  ctx.fillStyle = '#fbbf24';
+  ctx.fill();
+
+  // Label
+  ctx.font = '10px "DM Sans"';
+  ctx.fillStyle = '#fbbf24';
+  ctx.textAlign = 'center';
+  var lx2 = cx + (R + 28) * Math.cos(vpAngle);
+  var ly2 = cy + (R + 28) * Math.sin(vpAngle);
+  ctx.fillText('Lentepunt', lx2, ly2);
+
+  // Center: Earth
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI*2);
+  ctx.fillStyle = '#3b82f6';
+  ctx.fill();
+  ctx.font = '10px "Material Icons Round"';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('\u2641', cx, cy); // Earth symbol
+
+  // Year
+  ctx.font = '700 12px "Space Mono"';
+  ctx.fillStyle = 'rgba(148,163,184,.4)';
+  ctx.fillText(year + ' n.Chr.', cx, cy + R + 35);
+}
+
+function buildShiftTable(){
+  var html = '<thead><tr><th>Geboortedatum</th><th>Astrologie (tropisch)</th><th>Astronomie (siderisch)</th><th>Verschil?</th></tr></thead><tbody>';
+  ZODIAC.forEach(function(z){
+    var isDiff = z.tropisch !== z.siderisch;
+    html += '<tr>';
+    html += '<td>'+z.tropisch+'</td>';
+    html += '<td><span style="font-size:16px">'+z.symbol+'</span> '+z.name+'</td>';
+    // Find which sidereal sign this tropical range falls in
+    // Simplification: show the sidereal sign for the middle of the tropical range
+    var midMonth = z.tropStart[0];
+    var midDay = z.tropStart[1] + 15;
+    var testDate = new Date(2024, midMonth - 1, midDay);
+    var sunLon = getSunEclipticLong(testDate);
+    var sider = getSiderealSign(sunLon, 2024);
+    html += '<td><span style="font-size:16px">'+sider.symbol+'</span> '+sider.name+'</td>';
+    html += '<td>'+(z.name !== sider.name ? '<span class="shift-diff">\u2260 Verschilt!</span>' : '<span style="color:var(--green)">\u2713</span>')+'</td>';
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('shiftTable').innerHTML = html;
+}
+
+// ============================================================
+// PLANETEN
+// ============================================================
+function planetNow(){
+  var now = new Date();
+  var offset = now.getTimezoneOffset();
+  var local = new Date(now.getTime() - offset * 60000);
+  document.getElementById('planetDate').value = local.toISOString().slice(0,16);
+  updatePlanets();
+}
+
+function updatePlanets(){
+  var val = document.getElementById('planetDate').value;
+  var date = val ? new Date(val) : new Date();
+  var observer = getObserver();
+
+  var tbody = document.getElementById('planetTable').querySelector('tbody');
+  var html = '';
+
+  // Sun
+  try {
+    var sunEq = Astronomy.Equator('Sun', date, observer, true, true);
+    var sunEcl = Astronomy.Ecliptic(sunEq.vec);
+    var sunSign = getTropicalSign(sunEcl.elon);
+    html += '<tr><td><span class="planet-dot" style="background:#fbbf24"></span>Zon</td>';
+    html += '<td>'+sunSign.symbol+' '+sunSign.name+'</td>';
+    html += '<td style="font:11px var(--mono)">'+sunEq.ra.toFixed(2)+'h</td>';
+    html += '<td style="font:11px var(--mono)">'+sunEq.dec.toFixed(1)+'\u00b0</td>';
+    html += '<td>\u2014</td></tr>';
+  } catch(e){}
+
+  // Moon
+  try {
+    var moonEq = Astronomy.Equator('Moon', date, observer, true, true);
+    var moonEcl = Astronomy.Ecliptic(moonEq.vec);
+    var moonSign = getTropicalSign(moonEcl.elon);
+    html += '<tr><td><span class="planet-dot" style="background:#e2e8f0"></span>Maan</td>';
+    html += '<td>'+moonSign.symbol+' '+moonSign.name+'</td>';
+    html += '<td style="font:11px var(--mono)">'+moonEq.ra.toFixed(2)+'h</td>';
+    html += '<td style="font:11px var(--mono)">'+moonEq.dec.toFixed(1)+'\u00b0</td>';
+    html += '<td>\u2014</td></tr>';
+  } catch(e){}
+
+  // Planets
+  PLANETS.forEach(function(pl){
+    try {
+      var eq = Astronomy.Equator(pl.body, date, observer, true, true);
+      var ecl = Astronomy.Ecliptic(eq.vec);
+      var sign = getTropicalSign(ecl.elon);
+      var elong = Astronomy.Elongation(pl.body, date);
+
+      // Retrograde check: compare ecliptic lon now vs 1 day later
+      var datePlus = new Date(date.getTime() + 86400000);
+      var eq2 = Astronomy.Equator(pl.body, datePlus, observer, true, true);
+      var ecl2 = Astronomy.Ecliptic(eq2.vec);
+      var dLon = ecl2.elon - ecl.elon;
+      if(dLon > 180) dLon -= 360;
+      if(dLon < -180) dLon += 360;
+      var isRetro = dLon < 0;
+
+      html += '<tr><td><span class="planet-dot" style="background:'+pl.color+'"></span>'+pl.name+'</td>';
+      html += '<td>'+sign.symbol+' '+sign.name+'</td>';
+      html += '<td style="font:11px var(--mono)">'+eq.ra.toFixed(2)+'h</td>';
+      html += '<td style="font:11px var(--mono)">'+eq.dec.toFixed(1)+'\u00b0</td>';
+      html += '<td>'+(isRetro ? '<span class="retro">\u211E RETRO</span>' : '<span style="color:var(--green);font:9px var(--mono)">DIRECT</span>')+'</td>';
+      html += '</tr>';
+    } catch(e){}
+  });
+
+  tbody.innerHTML = html;
+
+  // Moon phase
+  updateMoonPhase(date);
+
+  // Events
+  updateEvents(date, observer);
+}
+
+function updateMoonPhase(date){
+  var phase = Astronomy.MoonPhase(date);
+  var illum = Astronomy.Illumination('Moon', date);
+  var phaseFrac = illum.phase_fraction;
+
+  // Phase name
+  var phaseName = 'Nieuwe maan';
+  if(phase < 22.5) phaseName = 'Nieuwe maan';
+  else if(phase < 67.5) phaseName = 'Wassende sikkel';
+  else if(phase < 112.5) phaseName = 'Eerste kwartier';
+  else if(phase < 157.5) phaseName = 'Wassende maan';
+  else if(phase < 202.5) phaseName = 'Volle maan';
+  else if(phase < 247.5) phaseName = 'Afnemende maan';
+  else if(phase < 292.5) phaseName = 'Laatste kwartier';
+  else if(phase < 337.5) phaseName = 'Afnemende sikkel';
+  else phaseName = 'Nieuwe maan';
+
+  var age = phase / 360 * 29.53;
+  var pct = Math.round(phaseFrac * 100);
+
+  document.getElementById('moonPhaseName').textContent = phaseName;
+  document.getElementById('moonPhaseAge').textContent = 'Dag ' + age.toFixed(1) + ' van 29.5';
+  document.getElementById('moonIllum').textContent = 'Verlicht: ' + pct + '%';
+
+  // Draw moon
+  var canvas = document.getElementById('moonCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2, r = 40;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Dark side
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = '#1e293b';
+  ctx.fill();
+
+  // Illuminated side using phase angle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.clip();
+
+  var phaseRad = phase * Math.PI / 180;
+  // Calculate terminator position
+  var k = Math.cos(phaseRad);
+
+  ctx.beginPath();
+  // Draw illuminated half
+  if(phase <= 180){
+    // Waxing: right side illuminated
+    ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2, false);
+    ctx.ellipse(cx, cy, Math.abs(k)*r, r, 0, Math.PI/2, -Math.PI/2, k > 0);
+  } else {
+    // Waning: left side illuminated
+    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, false);
+    ctx.ellipse(cx, cy, Math.abs(k)*r, r, 0, -Math.PI/2, Math.PI/2, k < 0);
+  }
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fill();
+  ctx.restore();
+
+  // Moon border
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(148,163,184,.2)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function updateEvents(date, observer){
+  var html = '';
+  var events = [];
+
+  // Search for next full moon and new moon
+  try {
+    var nextFull = Astronomy.SearchMoonPhase(180, date, 30);
+    if(nextFull) events.push({date:nextFull.date, label:'Volle maan', icon:'brightness_7', color:'var(--gold)'});
+  } catch(e){}
+  try {
+    var nextNew = Astronomy.SearchMoonPhase(0, date, 30);
+    if(nextNew) events.push({date:nextNew.date, label:'Nieuwe maan', icon:'brightness_3', color:'var(--tx3)'});
+  } catch(e){}
+
+  // Sunrise/sunset
+  try {
+    var rise = Astronomy.SearchRiseSet('Sun', observer, +1, date, 2);
+    if(rise) events.push({date:rise.date, label:'Zonsopkomst', icon:'wb_sunny', color:'#fbbf24'});
+    var set = Astronomy.SearchRiseSet('Sun', observer, -1, date, 2);
+    if(set) events.push({date:set.date, label:'Zonsondergang', icon:'wb_twilight', color:'#f97316'});
+  } catch(e){}
+
+  // Sort by date
+  events.sort(function(a,b){ return a.date - b.date; });
+
+  events.forEach(function(ev){
+    var d = ev.date;
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03)">';
+    html += '<span class="mi" style="font-size:16px;color:'+ev.color+'">'+ev.icon+'</span>';
+    html += '<div style="flex:1"><div style="font:500 12px var(--font)">'+ev.label+'</div>';
+    html += '<div style="font:10px var(--mono);color:var(--tx3)">'+d.toLocaleString('nl-NL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</div>';
+    html += '</div></div>';
+  });
+
+  document.getElementById('eventsList').innerHTML = html || '<div style="color:var(--tx3);font-size:11px">Geen gebeurtenissen gevonden</div>';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  skyNow();
+  buildZodiacGrid();
+  buildShiftTable();
+  updatePrecess();
+})();
+</script>
+</body>
+</html>
