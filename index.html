@@ -107,6 +107,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .shift-table td:first-child{text-align:left}
 .shift-diff{color:var(--red);font-weight:600}
 
+/* Deep sky badges */
+.deep-sky-badge{position:absolute;pointer-events:none;border-radius:50%;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+
 /* Tooltip */
 .star-tooltip{position:fixed;z-index:200;pointer-events:none;background:rgba(6,8,15,.96);backdrop-filter:blur(20px);border:1px solid rgba(251,191,36,.25);border-radius:var(--r);padding:14px 16px;max-width:320px;opacity:0;transition:opacity .15s;font-size:12px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .star-tooltip.visible{opacity:1}
@@ -509,9 +513,129 @@ var STAR_FACTS = {
   'Denebola':   {dist:'36 lj', constellation:'Leeuw', spectral:'A3V', fact:'De "staart van de Leeuw". Een jonge ster met een stofschijf waaruit planeten kunnen ontstaan.'},
 };
 
-// Rendered star positions for tooltip hit-detection
+// Deep space objects: black holes, nebulae, etc.
+// [name, RA hours, Dec degrees, type]
+var DEEP_SKY = [
+  ['Sagittarius A*', 17.761, -29.008, 'blackhole'],
+  ['Cygnus X-1',     19.973, 35.202,  'blackhole'],
+  ['V404 Cygni',     20.410, 33.867,  'blackhole'],
+  ['A0620-00',       6.383,  -0.346,  'blackhole'],
+  ['M87*',           12.514, 12.391,  'blackhole'],
+  ['Orionnevel',     5.588,  -5.391,  'nebula'],
+  ['Krabnevel',      5.575,  22.015,  'nebula'],
+  ['Ringnevel',      18.893, 33.029,  'nebula'],
+  ['Andromeda',      0.712,  41.269,  'galaxy'],
+  ['Plejaden',       3.791,  24.105,  'cluster'],
+];
+
+var DEEP_SKY_FACTS = {
+  'Sagittarius A*': {
+    type:'Supermassief zwart gat', dist:'26.000 lj', mass:'4 miljoen zonsmassa\u2019s',
+    size:'44 miljoen km (event horizon)',
+    facts:[
+      'Dit is het supermassieve zwarte gat in het centrum van onze Melkweg!',
+      'In 2022 maakte de Event Horizon Telescope de eerste foto van Sgr A*.',
+      'Sterren in de buurt draaien met 7.000 km/s om dit zwarte gat.',
+      'Het zwarte gat is relatief rustig \u2014 het \u201ceet\u201d momenteel weinig materie.'
+    ]
+  },
+  'Cygnus X-1': {
+    type:'Stellair zwart gat', dist:'6.070 lj', mass:'21 zonsmassa\u2019s',
+    size:'~90 km (event horizon)',
+    facts:[
+      'Het eerste zwarte gat dat ooit bevestigd werd (1964). Stephen Hawking wedde er nog tegen!',
+      'Het zuigt materie van zijn begeleidende ster HDE 226868 en vormt een gloeiende accretieschijf.',
+      'De r\u00f6ntgenstraling varieert milliseconde per milliseconde \u2014 materie valt met bijna lichtsnelheid.',
+      'Hawking gaf in 1990 toe dat hij de weddenschap had verloren.'
+    ]
+  },
+  'V404 Cygni': {
+    type:'Stellair zwart gat', dist:'7.800 lj', mass:'9 zonsmassa\u2019s',
+    size:'~54 km (event horizon)',
+    facts:[
+      'In 2015 had dit zwarte gat een enorme uitbarsting die overal ter wereld werd gedetecteerd.',
+      'Het zwarte gat \u201cwankelt\u201d: de accretieschijf staat scheef en draait rond als een tol.',
+      'Het is een van de actiefste zwarte gaten in onze Melkweg.',
+      'De uitbarstingen duren soms maar minuten en produceren meer energie dan de zon in jaren.'
+    ]
+  },
+  'A0620-00': {
+    type:'Stellair zwart gat', dist:'3.300 lj', mass:'6,6 zonsmassa\u2019s',
+    size:'~40 km (event horizon)',
+    facts:[
+      'Het dichtstbijzijnde bekende zwarte gat bij de aarde (update: Gaia BH1 is dichter, 1.560 lj).',
+      'Het begeleidende sterretje is een K-type dwerg die 7,75 uur nodig heeft voor \u00e9\u00e9n omloop.',
+      'In 1917 was er een enorme nova-uitbarsting die het 600.000x helderder maakte.',
+      'Het is zo klein dat het event horizon in Nederland zou passen!'
+    ]
+  },
+  'M87*': {
+    type:'Supermassief zwart gat', dist:'55 miljoen lj', mass:'6,5 miljard zonsmassa\u2019s',
+    size:'38 miljard km (event horizon)',
+    facts:[
+      'Dit was het EERSTE zwarte gat dat ooit gefotografeerd werd (2019, Event Horizon Telescope)!',
+      'De beroemde foto toonde een donkere schaduw omringd door gloeiend gas.',
+      'Het schiet een jet van plasma uit die 5.000 lichtjaar lang is!',
+      'Het event horizon is groter dan ons hele zonnestelsel.'
+    ]
+  },
+  'Orionnevel': {
+    type:'Emissienevel / Stervormingsgebied', dist:'1.344 lj', size:'24 lichtjaar breed',
+    facts:[
+      'De dichtstbijzijnde grote stervormingsgebied \u2014 hier worden nu sterren geboren!',
+      'Met het blote oog zichtbaar als een vaag vlekje in het zwaard van Orion.',
+      'Bevat honderden pasgeboren sterren, sommige nog maar 100.000 jaar oud.',
+      'De Trapezium-cluster in het hart verlicht de hele nevel.'
+    ]
+  },
+  'Krabnevel': {
+    type:'Supernovarestant', dist:'6.500 lj', size:'11 lichtjaar breed',
+    facts:[
+      'Het overblijfsel van een supernova die in 1054 werd waargenomen door Chinese astronomen.',
+      'De explosie was zo helder dat hij overdag zichtbaar was \u2014 3 weken lang!',
+      'In het hart draait een pulsar (neutronenster) 30x per seconde rond.',
+      'De nevel breidt zich nog steeds uit met 1.500 km/s.'
+    ]
+  },
+  'Ringnevel': {
+    type:'Planetaire nevel', dist:'2.283 lj', size:'1 lichtjaar breed',
+    facts:[
+      'Een stervende ster die zijn buitenlagen heeft afgestoten als een kleurrijke ring.',
+      'In het centrum staat een witte dwerg \u2014 de uitgebrande kern van de oorspronkelijke ster.',
+      'Door een telescoop lijkt het op een rookring, vandaar de naam.',
+      'Over miljarden jaren zal onze zon iets soortgelijks doen!'
+    ]
+  },
+  'Andromeda': {
+    type:'Spiraalstelsel', dist:'2,5 miljoen lj', size:'220.000 lichtjaar breed',
+    facts:[
+      'Het dichtstbijzijnde grote sterrenstelsel en het verst verwijderde object zichtbaar met het blote oog.',
+      'Bevat naar schatting 1 biljoen sterren \u2014 meer dan onze Melkweg!',
+      'Over ~4,5 miljard jaar botst Andromeda met onze Melkweg en vormen ze \u00e9\u00e9n nieuw stelsel.',
+      'Het licht dat je nu ziet vertrok toen de eerste mensachtigen op aarde verschenen.'
+    ]
+  },
+  'Plejaden': {
+    type:'Open sterrenhoop', dist:'444 lj', size:'17,5 lichtjaar breed',
+    facts:[
+      'De \u201cZeven Zusters\u201d \u2014 een groep jonge, hete blauwe sterren die maar 100 miljoen jaar oud zijn.',
+      'In bijna elke oude cultuur hebben de Plejaden een speciale betekenis.',
+      'Het Japanse automerk Subaru is vernoemd naar de Plejaden (\u201csubaru\u201d = Japans voor Plejaden).',
+      'Met goed zicht kun je 6-7 sterren zien, met een verrekijker meer dan 100.'
+    ]
+  }
+};
+
+// Animation state
+var _twinklePhases = []; // random phase per star for twinkling
+var _shootingStars = []; // active shooting stars
+var _animFrame = null;
+var _lastAnimTime = 0;
+
+// Rendered positions for tooltip hit-detection
 var _renderedStars = [];
 var _renderedPlanets = [];
+var _renderedDeepSky = [];
 
 // Zodiac constellation line patterns: [[star_index_pairs]]
 // Using indices into BRIGHT_STARS - simplified patterns
@@ -831,6 +955,97 @@ function updateSky(){
     } catch(e){}
   });
 
+  // Draw deep sky objects (black holes, nebulae, galaxies)
+  _renderedDeepSky = [];
+  DEEP_SKY.forEach(function(ds){
+    var hor = raDecToAltAz(ds[1], ds[2], date, observer);
+    var p = altAzToCanvas(hor.altitude, hor.azimuth, cx, cy, radius, zoom);
+    if(!p.visible) return;
+    if(p.x < 0 || p.x > W || p.y < 0 || p.y > H) return;
+
+    var dsType = ds[3];
+    if(dsType === 'blackhole'){
+      // Black hole: dark core with accretion disk glow
+      var bhGlow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 14);
+      bhGlow.addColorStop(0, 'rgba(0,0,0,0)');
+      bhGlow.addColorStop(0.3, 'rgba(0,0,0,0.8)');
+      bhGlow.addColorStop(0.5, 'rgba(168,85,247,0.4)');
+      bhGlow.addColorStop(0.7, 'rgba(251,191,36,0.2)');
+      bhGlow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = bhGlow;
+      ctx.fillRect(p.x-14, p.y-14, 28, 28);
+      // Dark center
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(168,85,247,0.6)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // Accretion ring
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, 7, 3, 0.3, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(251,191,36,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Label
+      ctx.font = '7px "DM Sans"';
+      ctx.fillStyle = 'rgba(168,85,247,0.6)';
+      ctx.textAlign = 'left';
+      ctx.fillText(ds[0], p.x + 10, p.y + 3);
+    } else if(dsType === 'nebula'){
+      // Nebula: fuzzy colorful cloud
+      var nebGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 10);
+      nebGrad.addColorStop(0, 'rgba(236,72,153,0.25)');
+      nebGrad.addColorStop(0.5, 'rgba(168,85,247,0.12)');
+      nebGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = nebGrad;
+      ctx.fillRect(p.x-10, p.y-10, 20, 20);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(236,72,153,0.4)';
+      ctx.fill();
+      ctx.font = '7px "DM Sans"';
+      ctx.fillStyle = 'rgba(236,72,153,0.5)';
+      ctx.textAlign = 'left';
+      ctx.fillText(ds[0], p.x + 6, p.y + 3);
+    } else if(dsType === 'galaxy'){
+      // Galaxy: tiny spiral
+      var galGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 12);
+      galGrad.addColorStop(0, 'rgba(226,232,240,0.3)');
+      galGrad.addColorStop(0.4, 'rgba(59,130,246,0.15)');
+      galGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = galGrad;
+      ctx.fillRect(p.x-12, p.y-12, 24, 24);
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, 6, 2.5, 0.5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(226,232,240,0.2)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(226,232,240,0.15)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.font = '7px "DM Sans"';
+      ctx.fillStyle = 'rgba(59,130,246,0.5)';
+      ctx.textAlign = 'left';
+      ctx.fillText(ds[0], p.x + 8, p.y + 3);
+    } else if(dsType === 'cluster'){
+      // Star cluster: group of tiny dots
+      for(var ci=0;ci<7;ci++){
+        var ca = Math.random()*Math.PI*2, cr = Math.random()*5;
+        ctx.beginPath();
+        ctx.arc(p.x + cr*Math.cos(ca), p.y + cr*Math.sin(ca), 0.8, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(170,200,255,0.5)';
+        ctx.fill();
+      }
+      ctx.font = '7px "DM Sans"';
+      ctx.fillStyle = 'rgba(170,200,255,0.5)';
+      ctx.textAlign = 'left';
+      ctx.fillText(ds[0], p.x + 8, p.y + 3);
+    }
+
+    _renderedDeepSky.push({x:p.x, y:p.y, name:ds[0], type:dsType, alt:hor.altitude, az:hor.azimuth});
+  });
+
   // Update info bar
   try {
     var sunEq = Astronomy.Equator('Sun', date, observer, true, true);
@@ -867,6 +1082,132 @@ function updateSky(){
     updateSky();
   });
 })();
+
+// ============================================================
+// STAR ANIMATION (twinkle + shooting stars)
+// ============================================================
+function startSkyAnimation(){
+  if(_animFrame) return;
+  // Initialize twinkle phases
+  _twinklePhases = [];
+  for(var i = 0; i < 100; i++){
+    _twinklePhases.push(Math.random() * Math.PI * 2);
+  }
+  _lastAnimTime = performance.now();
+  animateSky();
+}
+
+function animateSky(){
+  _animFrame = requestAnimationFrame(animateSky);
+  var now = performance.now();
+  var dt = (now - _lastAnimTime) / 1000;
+  _lastAnimTime = now;
+
+  var canvas = document.getElementById('skyCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  // Only animate if the sky panel is active
+  if(!document.getElementById('panelSky').classList.contains('active')){
+    return;
+  }
+
+  // Overlay: draw twinkle effects on top of existing render
+  // We re-render the sky periodically to get twinkling
+  var time = now / 1000;
+
+  // Draw twinkle layer over rendered stars
+  _renderedStars.forEach(function(star, idx){
+    var phase = _twinklePhases[idx % _twinklePhases.length];
+    var twinkle = 0.7 + 0.3 * Math.sin(time * (1.5 + (idx % 5) * 0.4) + phase);
+    // Only draw if star is bright enough to notice
+    if(star.mag > 2.5) return;
+
+    var sf = STAR_FACTS[star.name];
+    var starColor = '255,255,240';
+    if(sf && sf.spectral){
+      var sp = sf.spectral.charAt(0);
+      if(sp==='O'||sp==='B') starColor = '170,200,255';
+      else if(sp==='A') starColor = '220,230,255';
+      else if(sp==='G') starColor = '255,245,200';
+      else if(sp==='K') starColor = '255,210,160';
+      else if(sp==='M') starColor = '255,180,140';
+    }
+
+    // Subtle twinkle glow
+    var glowSize = (3.5 - star.mag * 0.5) * twinkle;
+    if(glowSize > 0.5){
+      var grad = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, glowSize * 2.5);
+      grad.addColorStop(0, 'rgba('+starColor+','+(twinkle*0.15)+')');
+      grad.addColorStop(1, 'rgba('+starColor+',0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(star.x - glowSize*2.5, star.y - glowSize*2.5, glowSize*5, glowSize*5);
+    }
+  });
+
+  // Shooting stars
+  // Spawn new one randomly (~every 6 seconds)
+  if(Math.random() < dt / 6){
+    var startX = Math.random() * W * 0.8 + W * 0.1;
+    var startY = Math.random() * H * 0.4;
+    var angle = (0.5 + Math.random() * 0.5) * Math.PI; // downward-ish
+    var speed = 300 + Math.random() * 400;
+    _shootingStars.push({
+      x: startX, y: startY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 0, maxLife: 0.4 + Math.random() * 0.4,
+      trail: []
+    });
+  }
+
+  // Update and draw shooting stars
+  for(var si = _shootingStars.length - 1; si >= 0; si--){
+    var ss = _shootingStars[si];
+    ss.life += dt;
+    ss.x += ss.vx * dt;
+    ss.y += ss.vy * dt;
+    ss.trail.push({x:ss.x, y:ss.y});
+    if(ss.trail.length > 15) ss.trail.shift();
+
+    var fade = 1 - (ss.life / ss.maxLife);
+    if(fade <= 0 || ss.x < 0 || ss.x > W || ss.y > H){
+      _shootingStars.splice(si, 1);
+      continue;
+    }
+
+    // Draw trail
+    if(ss.trail.length > 1){
+      ctx.beginPath();
+      ctx.moveTo(ss.trail[0].x, ss.trail[0].y);
+      for(var ti = 1; ti < ss.trail.length; ti++){
+        ctx.lineTo(ss.trail[ti].x, ss.trail[ti].y);
+      }
+      var trailGrad = ctx.createLinearGradient(
+        ss.trail[0].x, ss.trail[0].y,
+        ss.trail[ss.trail.length-1].x, ss.trail[ss.trail.length-1].y
+      );
+      trailGrad.addColorStop(0, 'rgba(255,255,240,0)');
+      trailGrad.addColorStop(1, 'rgba(255,255,240,'+(fade*0.7)+')');
+      ctx.strokeStyle = trailGrad;
+      ctx.lineWidth = 1.5 * fade;
+      ctx.stroke();
+    }
+
+    // Bright head
+    ctx.beginPath();
+    ctx.arc(ss.x, ss.y, 1.5 * fade, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,'+(fade*0.9)+')';
+    ctx.fill();
+  }
+}
+
+function stopSkyAnimation(){
+  if(_animFrame){
+    cancelAnimationFrame(_animFrame);
+    _animFrame = null;
+  }
+}
 
 // ============================================================
 // HOROSCOPE
@@ -1662,6 +2003,16 @@ function setupStarTooltips(){
         closest = {type:'planet', data:p};
       }
     }
+    // Check deep sky objects
+    for(var k = 0; k < _renderedDeepSky.length; k++){
+      var ds = _renderedDeepSky[k];
+      var dx3 = mx - ds.x, dy3 = my - ds.y;
+      var d3 = Math.sqrt(dx3*dx3 + dy3*dy3);
+      if(d3 < 25){ // bigger hit area for deep sky
+        closestDist = d3;
+        closest = {type:'deepsky', data:ds};
+      }
+    }
 
     if(closest){
       var html = '';
@@ -1684,7 +2035,7 @@ function setupStarTooltips(){
           html += '<span class="tt-stat-label">Azimut</span><span class="tt-stat-val">' + closest.data.az.toFixed(1) + '\u00b0</span>';
           html += '</div>';
         }
-      } else {
+      } else if(closest.type === 'planet'){
         var pf = PLANET_FACTS[closest.data.name];
         html = '<div class="tt-name" style="color:'+closest.data.color+'">';
         if(closest.data.name === 'Zon') html += '\u2609 ';
@@ -1710,6 +2061,29 @@ function setupStarTooltips(){
           html += '<span class="tt-stat-label">Hoogte</span><span class="tt-stat-val">' + closest.data.alt.toFixed(1) + '\u00b0</span>';
           html += '<span class="tt-stat-label">Azimut</span><span class="tt-stat-val">' + closest.data.az.toFixed(1) + '\u00b0</span>';
           html += '</div>';
+        }
+      } else if(closest.type === 'deepsky'){
+        var dsf = DEEP_SKY_FACTS[closest.data.name];
+        var typeIcons = {blackhole:'\ud83d\udd73\ufe0f', nebula:'\ud83c\udf0c', galaxy:'\ud83c\udf0c', cluster:'\u2728'};
+        var typeColors = {blackhole:'#a855f7', nebula:'#ec4899', galaxy:'#3b82f6', cluster:'#60a5fa'};
+        var typeLabels = {blackhole:'Zwart gat', nebula:'Nevel', galaxy:'Sterrenstelsel', cluster:'Sterrenhoop'};
+        var dsColor = typeColors[closest.data.type] || '#a855f7';
+
+        html = '<div class="tt-name" style="color:'+dsColor+'">'+(typeIcons[closest.data.type]||'')+' '+closest.data.name+'</div>';
+        if(dsf){
+          html += '<div class="tt-type">'+dsf.type+'</div>';
+          html += '<div class="tt-stats">';
+          html += '<span class="tt-stat-label">Afstand</span><span class="tt-stat-val">'+dsf.dist+'</span>';
+          if(dsf.mass) html += '<span class="tt-stat-label">Massa</span><span class="tt-stat-val">'+dsf.mass+'</span>';
+          if(dsf.size) html += '<span class="tt-stat-label">Grootte</span><span class="tt-stat-val">'+dsf.size+'</span>';
+          html += '<span class="tt-stat-label">Hoogte</span><span class="tt-stat-val">'+closest.data.alt.toFixed(1)+'\u00b0</span>';
+          html += '<span class="tt-stat-label">Azimut</span><span class="tt-stat-val">'+closest.data.az.toFixed(1)+'\u00b0</span>';
+          html += '</div>';
+          html += '<div class="tt-divider"></div>';
+          var dsFact = dsf.facts[Math.floor(Math.random() * dsf.facts.length)];
+          html += '<div class="tt-fact">\ud83d\udca1 '+dsFact+'</div>';
+        } else {
+          html += '<div class="tt-type">'+typeLabels[closest.data.type]+'</div>';
         }
       }
       tooltip.innerHTML = html;
@@ -1803,6 +2177,7 @@ function buildCompatibilityHTML(sunSign, ascSign){
   buildShiftTable();
   updatePrecess();
   setupStarTooltips();
+  startSkyAnimation();
 })();
 </script>
 </body>
