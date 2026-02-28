@@ -107,6 +107,40 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .shift-table td:first-child{text-align:left}
 .shift-diff{color:var(--red);font-weight:600}
 
+/* Tooltip */
+.star-tooltip{position:fixed;z-index:200;pointer-events:none;background:rgba(6,8,15,.95);backdrop-filter:blur(16px);border:1px solid rgba(251,191,36,.25);border-radius:var(--rs);padding:10px 14px;max-width:280px;opacity:0;transition:opacity .15s;font-size:12px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.star-tooltip.visible{opacity:1}
+.star-tooltip .tt-name{font:700 14px var(--font);color:var(--gold);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.star-tooltip .tt-meta{font:10px var(--mono);color:var(--tx3);margin-bottom:6px;display:flex;gap:10px;flex-wrap:wrap}
+.star-tooltip .tt-fact{font:11px var(--font);color:var(--tx2);line-height:1.5}
+.star-tooltip .tt-mag{display:inline-flex;align-items:center;gap:3px}
+
+/* Natal chart */
+#natalChartCanvas{display:block;margin:0 auto;max-width:100%}
+.natal-wrap{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px}
+.natal-chart-col{flex:1;min-width:300px;display:flex;justify-content:center;align-items:flex-start}
+.natal-info-col{flex:1;min-width:280px}
+
+/* Compatibility */
+.compat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-top:10px}
+.compat-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:8px;text-align:center;transition:all .2s}
+.compat-card.best{border-color:var(--gold);background:rgba(251,191,36,.08)}
+.compat-card .compat-symbol{font-size:22px}
+.compat-card .compat-name{font:600 11px var(--font);margin-top:2px}
+.compat-card .compat-score{font:700 10px var(--mono);margin-top:3px}
+.compat-stars{color:var(--gold);font-size:10px;letter-spacing:1px}
+
+/* Profile card */
+.profile-card{background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(168,85,247,.06));border:1px solid rgba(251,191,36,.15);border-radius:var(--r);padding:16px;margin-top:12px}
+.profile-header{display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.profile-symbol{font-size:48px;line-height:1}
+.profile-titles h3{font:700 18px var(--font);color:var(--gold);margin:0}
+.profile-titles p{font:12px var(--font);color:var(--tx2);margin:2px 0 0}
+.trait-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.trait-tag{padding:3px 10px;border-radius:20px;font:500 10px var(--font);border:1px solid}
+.trait-tag.strength{color:var(--green);border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.06)}
+.trait-tag.weakness{color:var(--red);border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.05)}
+
 @media(max-width:768px){
   .tabs{overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
   .tab{font-size:11px;padding:5px 10px}
@@ -163,6 +197,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <button class="btn btn-gold" onclick="skyNow()"><span class="mi" style="font-size:14px">schedule</span> Nu</button>
     </div>
     <canvas id="skyCanvas" width="1000" height="600"></canvas>
+    <div class="star-tooltip" id="starTooltip"></div>
     <div class="sky-info">
       <span id="skyInfoTime"></span>
       <span id="skyInfoLoc"></span>
@@ -206,6 +241,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <button class="btn btn-gold" onclick="calcHoroscope()"><span class="mi" style="font-size:14px">calculate</span> Bereken</button>
         </div>
         <div id="horoscopeResult"></div>
+        <div id="natalChartSection" style="display:none">
+          <div class="natal-wrap">
+            <div class="natal-chart-col">
+              <canvas id="natalChartCanvas" width="500" height="500"></canvas>
+            </div>
+            <div class="natal-info-col" id="natalInfo"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="col" style="max-width:380px">
@@ -298,30 +341,113 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 // ============================================================
 
 var ZODIAC = [
-  {id:'aries',     symbol:'\u2648',name:'Ram',        nameEn:'Aries',     element:'Vuur',   ruler:'Mars',     tropisch:'21 mrt \u2013 19 apr',  siderisch:'18 apr \u2013 13 mei', tropStart:[3,21],tropEnd:[4,19], siderStart:[4,18],siderEnd:[5,13], color:'#ef4444',
-   desc:'Energiek, moedig en competitief. De Ram is een geboren leider die niet bang is om nieuwe paden te bewandelen.'},
-  {id:'taurus',    symbol:'\u2649',name:'Stier',      nameEn:'Taurus',    element:'Aarde',  ruler:'Venus',    tropisch:'20 apr \u2013 20 mei',  siderisch:'14 mei \u2013 19 jun', tropStart:[4,20],tropEnd:[5,20], siderStart:[5,14],siderEnd:[6,19], color:'#22c55e',
-   desc:'Betrouwbaar, geduldig en praktisch. De Stier houdt van comfort, schoonheid en de fijne dingen des levens.'},
-  {id:'gemini',    symbol:'\u264A',name:'Tweelingen',  nameEn:'Gemini',    element:'Lucht',  ruler:'Mercurius',tropisch:'21 mei \u2013 20 jun',  siderisch:'20 jun \u2013 20 jul', tropStart:[5,21],tropEnd:[6,20], siderStart:[6,20],siderEnd:[7,20], color:'#fbbf24',
-   desc:'Nieuwsgierig, aanpasbaar en communicatief. Tweelingen zijn de sociale vlinders van de dierenriem.'},
-  {id:'cancer',    symbol:'\u264B',name:'Kreeft',      nameEn:'Cancer',    element:'Water',  ruler:'Maan',     tropisch:'21 jun \u2013 22 jul',  siderisch:'21 jul \u2013 9 aug',  tropStart:[6,21],tropEnd:[7,22], siderStart:[7,21],siderEnd:[8,9],  color:'#94a3b8',
-   desc:'Zorgzaam, intu\u00eftief en beschermend. De Kreeft is diep verbonden met huis, familie en emotie.'},
-  {id:'leo',       symbol:'\u264C',name:'Leeuw',       nameEn:'Leo',       element:'Vuur',   ruler:'Zon',      tropisch:'23 jul \u2013 22 aug',  siderisch:'10 aug \u2013 15 sep', tropStart:[7,23],tropEnd:[8,22], siderStart:[8,10],siderEnd:[9,15], color:'#f97316',
-   desc:'Creatief, hartstochtelijk en grootmoedig. De Leeuw straalt van nature en trekt de aandacht.'},
-  {id:'virgo',     symbol:'\u264D',name:'Maagd',       nameEn:'Virgo',     element:'Aarde',  ruler:'Mercurius',tropisch:'23 aug \u2013 22 sep',  siderisch:'16 sep \u2013 30 okt', tropStart:[8,23],tropEnd:[9,22], siderStart:[9,16],siderEnd:[10,30], color:'#a3e635',
-   desc:'Analytisch, behulpzaam en bescheiden. De Maagd let op details en streeft naar perfectie.'},
-  {id:'libra',     symbol:'\u264E',name:'Weegschaal',  nameEn:'Libra',     element:'Lucht',  ruler:'Venus',    tropisch:'23 sep \u2013 22 okt',  siderisch:'31 okt \u2013 22 nov', tropStart:[9,23],tropEnd:[10,22], siderStart:[10,31],siderEnd:[11,22], color:'#ec4899',
-   desc:'Harmonieus, diplomatiek en rechtvaardig. De Weegschaal zoekt balans in alles.'},
-  {id:'scorpio',   symbol:'\u264F',name:'Schorpioen',  nameEn:'Scorpio',   element:'Water',  ruler:'Pluto',    tropisch:'23 okt \u2013 21 nov',  siderisch:'23 nov \u2013 29 nov', tropStart:[10,23],tropEnd:[11,21], siderStart:[11,23],siderEnd:[11,29], color:'#991b1b',
-   desc:'Intens, vastberaden en mysterieus. De Schorpioen gaat tot de kern van alles.'},
-  {id:'sagittarius',symbol:'\u2650',name:'Boogschutter',nameEn:'Sagittarius',element:'Vuur', ruler:'Jupiter',  tropisch:'22 nov \u2013 21 dec',  siderisch:'17 dec \u2013 19 jan', tropStart:[11,22],tropEnd:[12,21], siderStart:[12,17],siderEnd:[1,19], color:'#7c3aed',
-   desc:'Avontuurlijk, optimistisch en filosofisch. De Boogschutter zoekt kennis en vrijheid.'},
-  {id:'capricorn', symbol:'\u2651',name:'Steenbok',    nameEn:'Capricorn', element:'Aarde',  ruler:'Saturnus', tropisch:'22 dec \u2013 19 jan',  siderisch:'20 jan \u2013 15 feb', tropStart:[12,22],tropEnd:[1,19], siderStart:[1,20],siderEnd:[2,15], color:'#6b7280',
-   desc:'Ambitieus, gedisciplineerd en verantwoordelijk. De Steenbok klimt gestaag naar de top.'},
-  {id:'aquarius',  symbol:'\u2652',name:'Waterman',    nameEn:'Aquarius',  element:'Lucht',  ruler:'Uranus',   tropisch:'20 jan \u2013 18 feb',  siderisch:'16 feb \u2013 11 mrt', tropStart:[1,20],tropEnd:[2,18], siderStart:[2,16],siderEnd:[3,11], color:'#06b6d4',
-   desc:'Onafhankelijk, origineel en humanitair. De Waterman denkt vooruit en wil de wereld verbeteren.'},
-  {id:'pisces',    symbol:'\u2653',name:'Vissen',      nameEn:'Pisces',    element:'Water',  ruler:'Neptunus', tropisch:'19 feb \u2013 20 mrt',  siderisch:'12 mrt \u2013 17 apr', tropStart:[2,19],tropEnd:[3,20], siderStart:[3,12],siderEnd:[4,17], color:'#2563eb',
-   desc:'Empathisch, creatief en dromerig. Vissen voelen de emoties van anderen en leven in een rijke innerlijke wereld.'}
+  {id:'aries',symbol:'\u2648',name:'Ram',nameEn:'Aries',element:'Vuur',quality:'Kardinaal',ruler:'Mars',
+   tropisch:'21 mrt \u2013 19 apr',siderisch:'18 apr \u2013 13 mei',tropStart:[3,21],tropEnd:[4,19],siderStart:[4,18],siderEnd:[5,13],color:'#ef4444',
+   desc:'Energiek, moedig en competitief. De Ram is een geboren leider die niet bang is om nieuwe paden te bewandelen.',
+   ascDesc:'Met Ram als ascendant straal je daadkracht en energie uit. Mensen zien je als direct, sportief en vol pit.',
+   strengths:['Moedig','Vastberaden','Zelfverzekerd','Enthousiast','Eerlijk'],
+   weaknesses:['Ongeduldig','Impulsief','Kort lontje','Competitief'],
+   compatible:['leo','sagittarius','gemini','aquarius'],bestMatch:'leo',
+   loveStyle:'Gepassioneerd en direct \u2014 de Ram valt hard en snel.'},
+
+  {id:'taurus',symbol:'\u2649',name:'Stier',nameEn:'Taurus',element:'Aarde',quality:'Vast',ruler:'Venus',
+   tropisch:'20 apr \u2013 20 mei',siderisch:'14 mei \u2013 19 jun',tropStart:[4,20],tropEnd:[5,20],siderStart:[5,14],siderEnd:[6,19],color:'#22c55e',
+   desc:'Betrouwbaar, geduldig en praktisch. De Stier houdt van comfort, schoonheid en de fijne dingen des levens.',
+   ascDesc:'Met Stier als ascendant kom je rustig en betrouwbaar over. Je houdt van luxe, schoonheid en stabiliteit.',
+   strengths:['Betrouwbaar','Geduldig','Praktisch','Toegewijd','Sensueel'],
+   weaknesses:['Koppig','Bezitterig','Lui','Materialistisch'],
+   compatible:['virgo','capricorn','cancer','pisces'],bestMatch:'virgo',
+   loveStyle:'Trouw en sensueel \u2014 de Stier bouwt aan een liefde die eeuwig duurt.'},
+
+  {id:'gemini',symbol:'\u264A',name:'Tweelingen',nameEn:'Gemini',element:'Lucht',quality:'Beweeglijk',ruler:'Mercurius',
+   tropisch:'21 mei \u2013 20 jun',siderisch:'20 jun \u2013 20 jul',tropStart:[5,21],tropEnd:[6,20],siderStart:[6,20],siderEnd:[7,20],color:'#fbbf24',
+   desc:'Nieuwsgierig, aanpasbaar en communicatief. Tweelingen zijn de sociale vlinders van de dierenriem.',
+   ascDesc:'Met Tweelingen als ascendant ben je vlot, geestig en nieuwsgierig. Je maakt makkelijk contact.',
+   strengths:['Communicatief','Aanpasbaar','Slim','Geestig','Veelzijdig'],
+   weaknesses:['Oppervlakkig','Onrustig','Besluiteloos','Wispelturig'],
+   compatible:['libra','aquarius','aries','leo'],bestMatch:'aquarius',
+   loveStyle:'Speels en intellectueel \u2014 Tweelingen flirten met woorden en idee\u00ebn.'},
+
+  {id:'cancer',symbol:'\u264B',name:'Kreeft',nameEn:'Cancer',element:'Water',quality:'Kardinaal',ruler:'Maan',
+   tropisch:'21 jun \u2013 22 jul',siderisch:'21 jul \u2013 9 aug',tropStart:[6,21],tropEnd:[7,22],siderStart:[7,21],siderEnd:[8,9],color:'#94a3b8',
+   desc:'Zorgzaam, intu\u00eftief en beschermend. De Kreeft is diep verbonden met huis, familie en emotie.',
+   ascDesc:'Met Kreeft als ascendant ben je warm, verzorgend en emotioneel intelligent. Je voelt sferen feilloos aan.',
+   strengths:['Zorgzaam','Loyaal','Intu\u00eftief','Beschermend','Empathisch'],
+   weaknesses:['Humeurig','Clingy','Overgevoelig','Wantrouwend'],
+   compatible:['scorpio','pisces','taurus','virgo'],bestMatch:'scorpio',
+   loveStyle:'Diep en verzorgend \u2014 de Kreeft geeft alles voor de mensen van wie ze houdt.'},
+
+  {id:'leo',symbol:'\u264C',name:'Leeuw',nameEn:'Leo',element:'Vuur',quality:'Vast',ruler:'Zon',
+   tropisch:'23 jul \u2013 22 aug',siderisch:'10 aug \u2013 15 sep',tropStart:[7,23],tropEnd:[8,22],siderStart:[8,10],siderEnd:[9,15],color:'#f97316',
+   desc:'Creatief, hartstochtelijk en grootmoedig. De Leeuw straalt van nature en trekt de aandacht.',
+   ascDesc:'Met Leeuw als ascendant ben je charismatisch en theatraal. Je vult elke kamer die je binnenloopt.',
+   strengths:['Creatief','Genereus','Warm','Charismatisch','Zelfverzekerd'],
+   weaknesses:['Arrogant','Ijdel','Dominant','Aandacht-zoekend'],
+   compatible:['aries','sagittarius','gemini','libra'],bestMatch:'aries',
+   loveStyle:'Groots en royaal \u2014 de Leeuw wil aanbeden worden en geeft dat tien keer terug.'},
+
+  {id:'virgo',symbol:'\u264D',name:'Maagd',nameEn:'Virgo',element:'Aarde',quality:'Beweeglijk',ruler:'Mercurius',
+   tropisch:'23 aug \u2013 22 sep',siderisch:'16 sep \u2013 30 okt',tropStart:[8,23],tropEnd:[9,22],siderStart:[9,16],siderEnd:[10,30],color:'#a3e635',
+   desc:'Analytisch, behulpzaam en bescheiden. De Maagd let op details en streeft naar perfectie.',
+   ascDesc:'Met Maagd als ascendant kom je georganiseerd en bescheiden over. Je oog voor detail valt op.',
+   strengths:['Analytisch','Behulpzaam','Precies','Bescheiden','Praktisch'],
+   weaknesses:['Kritisch','Perfectionistisch','Tobberig','Te bescheiden'],
+   compatible:['taurus','capricorn','cancer','scorpio'],bestMatch:'taurus',
+   loveStyle:'Attent en dienstbaar \u2014 de Maagd toont liefde door te doen, niet te zeggen.'},
+
+  {id:'libra',symbol:'\u264E',name:'Weegschaal',nameEn:'Libra',element:'Lucht',quality:'Kardinaal',ruler:'Venus',
+   tropisch:'23 sep \u2013 22 okt',siderisch:'31 okt \u2013 22 nov',tropStart:[9,23],tropEnd:[10,22],siderStart:[10,31],siderEnd:[11,22],color:'#ec4899',
+   desc:'Harmonieus, diplomatiek en rechtvaardig. De Weegschaal zoekt balans in alles.',
+   ascDesc:'Met Weegschaal als ascendant ben je charmant en diplomatiek. Je hebt een aangeboren gevoel voor stijl.',
+   strengths:['Diplomatiek','Eerlijk','Sociaal','Charmant','Esthetisch'],
+   weaknesses:['Besluiteloos','Conflictvermijdend','Afhankelijk','IJdel'],
+   compatible:['gemini','aquarius','leo','sagittarius'],bestMatch:'gemini',
+   loveStyle:'Romantisch en verfijnd \u2014 de Weegschaal gelooft in de perfecte partner.'},
+
+  {id:'scorpio',symbol:'\u264F',name:'Schorpioen',nameEn:'Scorpio',element:'Water',quality:'Vast',ruler:'Pluto',
+   tropisch:'23 okt \u2013 21 nov',siderisch:'23 nov \u2013 29 nov',tropStart:[10,23],tropEnd:[11,21],siderStart:[11,23],siderEnd:[11,29],color:'#991b1b',
+   desc:'Intens, vastberaden en mysterieus. De Schorpioen gaat tot de kern van alles.',
+   ascDesc:'Met Schorpioen als ascendant heb je een magnetische uitstraling. Je blik is doordringend en intens.',
+   strengths:['Vastberaden','Moedig','Loyaal','Intuïtief','Gepassioneerd'],
+   weaknesses:['Jaloers','Geheimzinnig','Wraakzuchtig','Controlerend'],
+   compatible:['cancer','pisces','virgo','capricorn'],bestMatch:'cancer',
+   loveStyle:'Alles of niets \u2014 de Schorpioen bemint met ongekende diepte en intensiteit.'},
+
+  {id:'sagittarius',symbol:'\u2650',name:'Boogschutter',nameEn:'Sagittarius',element:'Vuur',quality:'Beweeglijk',ruler:'Jupiter',
+   tropisch:'22 nov \u2013 21 dec',siderisch:'17 dec \u2013 19 jan',tropStart:[11,22],tropEnd:[12,21],siderStart:[12,17],siderEnd:[1,19],color:'#7c3aed',
+   desc:'Avontuurlijk, optimistisch en filosofisch. De Boogschutter zoekt kennis en vrijheid.',
+   ascDesc:'Met Boogschutter als ascendant straal je optimisme en avontuur uit. Je bent altijd klaar voor iets nieuws.',
+   strengths:['Optimistisch','Eerlijk','Avontuurlijk','Filosofisch','Grappig'],
+   weaknesses:['Tactloos','Ongeduldig','Onverantwoordelijk','Rusteloos'],
+   compatible:['aries','leo','libra','aquarius'],bestMatch:'aries',
+   loveStyle:'Vrij en avontuurlijk \u2014 de Boogschutter wil een partner die mee op reis gaat.'},
+
+  {id:'capricorn',symbol:'\u2651',name:'Steenbok',nameEn:'Capricorn',element:'Aarde',quality:'Kardinaal',ruler:'Saturnus',
+   tropisch:'22 dec \u2013 19 jan',siderisch:'20 jan \u2013 15 feb',tropStart:[12,22],tropEnd:[1,19],siderStart:[1,20],siderEnd:[2,15],color:'#6b7280',
+   desc:'Ambitieus, gedisciplineerd en verantwoordelijk. De Steenbok klimt gestaag naar de top.',
+   ascDesc:'Met Steenbok als ascendant kom je serieus en ambitieus over. Mensen vertrouwen op jouw stabiliteit.',
+   strengths:['Ambitieus','Gedisciplineerd','Geduldig','Verantwoordelijk','Strategisch'],
+   weaknesses:['Pessimistisch','Rigide','Werkverslaafd','Emotioneel gesloten'],
+   compatible:['taurus','virgo','scorpio','pisces'],bestMatch:'taurus',
+   loveStyle:'Stabiel en loyaal \u2014 de Steenbok bouwt aan een relatie als aan een carri\u00e8re: met toewijding.'},
+
+  {id:'aquarius',symbol:'\u2652',name:'Waterman',nameEn:'Aquarius',element:'Lucht',quality:'Vast',ruler:'Uranus',
+   tropisch:'20 jan \u2013 18 feb',siderisch:'16 feb \u2013 11 mrt',tropStart:[1,20],tropEnd:[2,18],siderStart:[2,16],siderEnd:[3,11],color:'#06b6d4',
+   desc:'Onafhankelijk, origineel en humanitair. De Waterman denkt vooruit en wil de wereld verbeteren.',
+   ascDesc:'Met Waterman als ascendant ben je excentriek en vooruitstrevend. Je valt op door je unieke stijl.',
+   strengths:['Origineel','Onafhankelijk','Humanitair','Intellectueel','Visionair'],
+   weaknesses:['Afstandelijk','Koppig','Onvoorspelbaar','Emotioneel onbereikbaar'],
+   compatible:['gemini','libra','aries','sagittarius'],bestMatch:'gemini',
+   loveStyle:'Intellectueel en onconventioneel \u2014 de Waterman wil een beste vriend \u00e9n minnaar.'},
+
+  {id:'pisces',symbol:'\u2653',name:'Vissen',nameEn:'Pisces',element:'Water',quality:'Beweeglijk',ruler:'Neptunus',
+   tropisch:'19 feb \u2013 20 mrt',siderisch:'12 mrt \u2013 17 apr',tropStart:[2,19],tropEnd:[3,20],siderStart:[3,12],siderEnd:[4,17],color:'#2563eb',
+   desc:'Empathisch, creatief en dromerig. Vissen voelen de emoties van anderen en leven in een rijke innerlijke wereld.',
+   ascDesc:'Met Vissen als ascendant heb je een dromerige, zachte uitstraling. Je bent artistiek en invoelend.',
+   strengths:['Empathisch','Creatief','Wijs','Zachtaardig','Intu\u00eftief'],
+   weaknesses:['Naïef','Ontwijkend','Overgevoelig','Slachtoffer-rol'],
+   compatible:['cancer','scorpio','taurus','capricorn'],bestMatch:'cancer',
+   loveStyle:'Dromerig en opofferend \u2014 de Vissen geven zich volledig over aan de liefde.'}
 ];
 
 // Ecliptic longitude boundaries for tropical zodiac (0=Aries vernal equinox)
@@ -354,6 +480,35 @@ var BRIGHT_STARS = [
   ['Sadalmelik',22.097,-0.32,2.96],['Sadalsuud',21.526,-5.57,2.91], // Aquarius
   ['Alrescha',2.034,2.76,3.82], // Pisces
 ];
+
+// Star facts for tooltips: {name: {dist, constellation, spectral, fact}}
+var STAR_FACTS = {
+  'Sirius':     {dist:'8.6 lj', constellation:'Grote Hond', spectral:'A1V', fact:'De helderste ster aan de nachtelijke hemel. De oude Egyptenaren gebruikten Sirius om het begin van de Nijloverstroming te voorspellen.'},
+  'Canopus':    {dist:'310 lj', constellation:'Kiel', spectral:'F0II', fact:'Op twee na helderste ster. Ruimteschepen gebruiken Canopus als referentiepunt voor navigatie.'},
+  'Arcturus':   {dist:'37 lj', constellation:'Ossenhoeder', spectral:'K1.5III', fact:'Een rode reus die 25x groter is dan de zon. In 1933 werd het licht van Arcturus gebruikt om de Wereldtentoonstelling in Chicago te openen.'},
+  'Vega':       {dist:'25 lj', constellation:'Lier', spectral:'A0V', fact:'Was 14.000 jaar geleden de Poolster en zal dat over 12.000 jaar weer zijn. E\u0301\u0301\u0301n van de eerste sterren die gefotografeerd werd (1850).'},
+  'Capella':    {dist:'43 lj', constellation:'Voerman', spectral:'G8III', fact:'Eigenlijk een systeem van 4 sterren! De naam betekent "geitje" in het Latijn.'},
+  'Rigel':      {dist:'860 lj', constellation:'Orion', spectral:'B8Ia', fact:'Een blauwe superreus die 120.000x zo helder is als de zon. De linkervoet van Orion.'},
+  'Procyon':    {dist:'11.5 lj', constellation:'Kleine Hond', spectral:'F5IV', fact:'E\u0301\u0301\u0301n van onze dichtstbijzijnde buren. De naam betekent "v\u00f3\u00f3r de hond" \u2014 hij komt net voor Sirius op.'},
+  'Betelgeuse': {dist:'700 lj', constellation:'Orion', spectral:'M1Ia', fact:'Een rode superreus die zo groot is dat hij tot voorbij Mars zou reiken. Kan elk moment als supernova exploderen!'},
+  'Altair':     {dist:'17 lj', constellation:'Arend', spectral:'A7V', fact:'Draait z\u00f3 snel om zijn as (elke 10 uur) dat hij aan de evenaar uitpuilt. In het Chinese sterrenverhaal is Altair de Koeherder.'},
+  'Aldebaran':  {dist:'65 lj', constellation:'Stier', spectral:'K5III', fact:'Het "oog van de stier". Rode reus die 44x de diameter van de zon heeft.'},
+  'Antares':    {dist:'550 lj', constellation:'Schorpioen', spectral:'M1Ib', fact:'De naam betekent "rivaal van Mars" vanwege zijn rode kleur. 700x groter dan de zon!'},
+  'Spica':      {dist:'250 lj', constellation:'Maagd', spectral:'B1V', fact:'Eigenlijk twee sterren die zo dicht om elkaar draaien dat ze eivormig worden uitgerekt.'},
+  'Pollux':     {dist:'34 lj', constellation:'Tweelingen', spectral:'K0III', fact:'De helderste ster van Tweelingen. Heeft een bevestigde exoplaneet: "Thestias".'},
+  'Fomalhaut':  {dist:'25 lj', constellation:'Zuidelijke Vis', spectral:'A3V', fact:'Omringd door een spectaculaire stofring. E\u0301\u0301\u0301n van de eerste sterren waaromheen een exoplaneet direct werd gefotografeerd.'},
+  'Deneb':      {dist:'2.600 lj', constellation:'Zwaan', spectral:'A2Ia', fact:'E\u0301\u0301\u0301n van de verst verwijderde sterren die je met het blote oog kunt zien. 200.000x helderder dan de zon!'},
+  'Regulus':    {dist:'79 lj', constellation:'Leeuw', spectral:'B8IV', fact:'Het "hart van de Leeuw". Draait zo snel dat hij bijna uit elkaar vliegt.'},
+  'Castor':     {dist:'51 lj', constellation:'Tweelingen', spectral:'A1V', fact:'Ziet eruit als \u00e9\u00e9n ster maar is er eigenlijk ZES \u2014 drie paren sterren die om elkaar draaien.'},
+  'Polaris':    {dist:'430 lj', constellation:'Kleine Beer', spectral:'F7Ib', fact:'De huidige Poolster! Staat bijna precies boven de Noordpool. Eigenlijk een drievoudig sterrensysteem.'},
+  'Bellatrix':  {dist:'250 lj', constellation:'Orion', spectral:'B2III', fact:'De "Amazone-ster" \u2014 de linkerschouder van Orion. Een blauwe reus die binnenkort een rode reus wordt.'},
+  'Hamal':      {dist:'66 lj', constellation:'Ram', spectral:'K2III', fact:'De helderste ster van het sterrenbeeld Ram. 2000 jaar geleden markeerde deze ster het lentepunt.'},
+  'Denebola':   {dist:'36 lj', constellation:'Leeuw', spectral:'A3V', fact:'De "staart van de Leeuw". Een jonge ster met een stofschijf waaruit planeten kunnen ontstaan.'},
+};
+
+// Rendered star positions for tooltip hit-detection
+var _renderedStars = [];
+var _renderedPlanets = [];
 
 // Zodiac constellation line patterns: [[star_index_pairs]]
 // Using indices into BRIGHT_STARS - simplified patterns
@@ -489,6 +644,7 @@ function updateSky(){
   ctx.stroke();
 
   // Draw stars
+  _renderedStars = [];
   BRIGHT_STARS.forEach(function(star){
     var hor = raDecToAltAz(star[1], star[2], date, observer);
     var p = altAzToCanvas(hor.altitude, hor.azimuth, cx, cy, radius, zoom);
@@ -499,19 +655,35 @@ function updateSky(){
     var size = Math.max(0.5, 3.5 - mag * 0.8);
     var alpha = Math.max(0.2, Math.min(1, 1.2 - mag * 0.25));
 
+    // Star color based on spectral type (from STAR_FACTS)
+    var starColor = '255,255,240';
+    var sf = STAR_FACTS[star[0]];
+    if(sf && sf.spectral){
+      var sp = sf.spectral.charAt(0);
+      if(sp==='O'||sp==='B') starColor = '170,200,255'; // blue
+      else if(sp==='A') starColor = '220,230,255'; // blue-white
+      else if(sp==='F') starColor = '255,255,240'; // white
+      else if(sp==='G') starColor = '255,245,200'; // yellow
+      else if(sp==='K') starColor = '255,210,160'; // orange
+      else if(sp==='M') starColor = '255,180,140'; // red
+    }
+
     // Glow
     if(mag < 1.5){
       var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size*3);
-      grad.addColorStop(0, 'rgba(255,255,240,'+alpha*0.3+')');
-      grad.addColorStop(1, 'rgba(255,255,240,0)');
+      grad.addColorStop(0, 'rgba('+starColor+','+alpha*0.3+')');
+      grad.addColorStop(1, 'rgba('+starColor+',0)');
       ctx.fillStyle = grad;
       ctx.fillRect(p.x-size*3, p.y-size*3, size*6, size*6);
     }
 
     ctx.beginPath();
     ctx.arc(p.x, p.y, size, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,240,'+alpha+')';
+    ctx.fillStyle = 'rgba('+starColor+','+alpha+')';
     ctx.fill();
+
+    // Store for tooltip hit-detection
+    _renderedStars.push({x:p.x, y:p.y, name:star[0], mag:mag});
 
     // Label bright stars
     if(mag < 1.5){
@@ -528,6 +700,7 @@ function updateSky(){
   var bodyNamesNL = {'Sun':'Zon','Moon':'Maan','Mercury':'Mercurius','Venus':'Venus','Mars':'Mars','Jupiter':'Jupiter','Saturn':'Saturnus','Uranus':'Uranus','Neptune':'Neptunus'};
   var bodySizes = {'Sun':6,'Moon':5,'Mercury':2.5,'Venus':3.5,'Mars':3,'Jupiter':4,'Saturn':3.5,'Uranus':2.5,'Neptune':2.5};
 
+  _renderedPlanets = [];
   bodyNames.forEach(function(bname){
     try {
       var eq = Astronomy.Equator(bname, date, observer, true, true);
@@ -550,6 +723,9 @@ function updateSky(){
       ctx.arc(p.x, p.y, sz, 0, Math.PI*2);
       ctx.fillStyle = col;
       ctx.fill();
+
+      // Store for tooltip hit-detection
+      _renderedPlanets.push({x:p.x, y:p.y, name:bodyNamesNL[bname], color:col, alt:hor.altitude, az:hor.azimuth});
 
       ctx.font = '9px "DM Sans"';
       ctx.fillStyle = col;
@@ -637,8 +813,23 @@ function calcHoroscope(){
   var siderSign = getSiderealSign(sunLon, year);
   var ayan = getAyanamsa(year);
 
+  // Ascendant
+  var asc = calcAscendant(date, lat, lon);
+  var ascSign = asc.sign;
+
+  // Moon sign
+  var moonSign = null;
+  try {
+    var moonEq = Astronomy.Equator('Moon', date, observer, true, true);
+    var moonEcl = Astronomy.Ecliptic(moonEq.vec);
+    moonSign = getTropicalSign(moonEcl.elon);
+  } catch(e){}
+
   // Planet positions
   var planetPositions = [];
+  if(moonSign){
+    planetPositions.push({name:'Maan', sign:moonSign.name, lon:moonEcl.elon, color:'#e2e8f0'});
+  }
   PLANETS.forEach(function(pl){
     try {
       var eq = Astronomy.Equator(pl.body, date, observer, true, true);
@@ -648,46 +839,80 @@ function calcHoroscope(){
     } catch(e){}
   });
 
-  // Moon
-  try {
-    var moonEq = Astronomy.Equator('Moon', date, observer, true, true);
-    var moonEcl = Astronomy.Ecliptic(moonEq.vec);
-    var moonSign = getTropicalSign(moonEcl.elon);
-    planetPositions.unshift({name:'Maan', sign:moonSign.name, lon:moonEcl.elon, color:'#e2e8f0'});
-  } catch(e){}
+  // ── PROFILE CARD ──
+  var html = '<div class="profile-card">';
+  html += '<div class="profile-header">';
+  html += '<div class="profile-symbol">'+tropSign.symbol+'</div>';
+  html += '<div class="profile-titles">';
+  html += '<h3>Jouw Kosmisch Profiel</h3>';
+  html += '<p>'+date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})+' om '+timeStr+'</p>';
+  html += '</div></div>';
 
-  // Build result HTML
-  var html = '<div class="result-box">';
-  html += '<h3 style="color:var(--gold);margin-top:0">Resultaat voor '+date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})+' '+timeStr+'</h3>';
-
-  // Tropical
-  html += '<div style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap">';
-  html += '<div style="flex:1;min-width:200px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:var(--rs);padding:12px;text-align:center">';
-  html += '<div style="font-size:36px">'+tropSign.symbol+'</div>';
+  // Three pillars: Zon, Maan, Ascendant
+  html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">';
+  // Zon
+  html += '<div style="flex:1;min-width:140px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:var(--rs);padding:12px;text-align:center">';
+  html += '<div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px">\u2609 Zonteken</div>';
+  html += '<div style="font-size:32px;margin:4px 0">'+tropSign.symbol+'</div>';
   html += '<div style="font:700 14px var(--font);color:var(--gold)">'+tropSign.name+'</div>';
-  html += '<div style="font:10px var(--mono);color:var(--tx3)">Tropisch (astrologie)</div>';
-  html += '<div style="font:11px var(--font);color:var(--tx2);margin-top:6px">'+tropSign.desc+'</div>';
+  html += '<div style="font:10px var(--font);color:var(--tx3)">'+tropSign.element+' \u00b7 '+tropSign.quality+'</div>';
+  html += '</div>';
+  // Maan
+  if(moonSign){
+    html += '<div style="flex:1;min-width:140px;background:rgba(226,232,240,.06);border:1px solid rgba(226,232,240,.15);border-radius:var(--rs);padding:12px;text-align:center">';
+    html += '<div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px">\u263d Maanteken</div>';
+    html += '<div style="font-size:32px;margin:4px 0">'+moonSign.symbol+'</div>';
+    html += '<div style="font:700 14px var(--font);color:var(--tx)">'+moonSign.name+'</div>';
+    html += '<div style="font:10px var(--font);color:var(--tx3)">Je emotionele kern</div>';
+    html += '</div>';
+  }
+  // Ascendant
+  html += '<div style="flex:1;min-width:140px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:var(--rs);padding:12px;text-align:center">';
+  html += '<div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px">\u2191 Ascendant</div>';
+  html += '<div style="font-size:32px;margin:4px 0">'+ascSign.symbol+'</div>';
+  html += '<div style="font:700 14px var(--font);color:var(--purple)">'+ascSign.name+'</div>';
+  html += '<div style="font:10px var(--font);color:var(--tx3)">'+asc.degInSign.toFixed(1)+'\u00b0 in '+ascSign.name+'</div>';
+  html += '</div>';
   html += '</div>';
 
-  html += '<div style="flex:1;min-width:200px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.15);border-radius:var(--rs);padding:12px;text-align:center">';
-  html += '<div style="font-size:36px">'+siderSign.symbol+'</div>';
-  html += '<div style="font:700 14px var(--font);color:var(--purple)">'+siderSign.name+'</div>';
-  html += '<div style="font:10px var(--mono);color:var(--tx3)">Siderisch (astronomie)</div>';
-  html += '<div style="font:11px var(--font);color:var(--tx2);margin-top:6px">'+siderSign.desc+'</div>';
-  html += '</div>';
+  // Ascendant description
+  html += '<div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.12);border-radius:var(--rs);padding:10px;margin-bottom:12px">';
+  html += '<div style="font:600 12px var(--font);color:var(--purple);margin-bottom:4px">\u2191 Je Ascendant: '+ascSign.name+'</div>';
+  html += '<div style="font:11px var(--font);color:var(--tx2)">'+ascSign.ascDesc+'</div>';
   html += '</div>';
 
+  // Strengths & Weaknesses
+  html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">';
+  html += '<div style="flex:1;min-width:200px">';
+  html += '<div style="font:600 11px var(--font);color:var(--green);margin-bottom:6px">\u2728 Sterke punten ('+tropSign.name+')</div>';
+  html += '<div class="trait-tags">';
+  tropSign.strengths.forEach(function(s){ html += '<span class="trait-tag strength">'+s+'</span>'; });
+  html += '</div></div>';
+  html += '<div style="flex:1;min-width:200px">';
+  html += '<div style="font:600 11px var(--font);color:var(--red);margin-bottom:6px">\u26a0 Valkuilen</div>';
+  html += '<div class="trait-tags">';
+  tropSign.weaknesses.forEach(function(w){ html += '<span class="trait-tag weakness">'+w+'</span>'; });
+  html += '</div></div>';
+  html += '</div>';
+
+  // Love style
+  html += '<div style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:var(--rs);padding:10px;margin-bottom:12px">';
+  html += '<div style="font:600 11px var(--font);color:#ec4899;margin-bottom:3px">\u2764\ufe0f Liefdesstijl</div>';
+  html += '<div style="font:11px var(--font);color:var(--tx2)">'+tropSign.loveStyle+'</div>';
+  html += '</div>';
+
+  // Tropisch vs Siderisch verschil
   if(tropSign.id !== siderSign.id){
     html += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:var(--rs);padding:10px;font-size:11px;margin-bottom:12px">';
     html += '<span class="mi" style="color:var(--red);font-size:14px;vertical-align:-3px">info</span> ';
-    html += '<b style="color:var(--red)">Je tekens verschillen!</b> Door precessie (verschuiving aardas van ~'+ayan.toFixed(1)+'\u00b0) staat de zon astronomisch gezien in een ander sterrenbeeld dan de astrologie zegt. ';
-    html += 'De tropische dierenriem is ~2000 jaar geleden vastgelegd en sindsdien niet meer bijgewerkt.';
+    html += '<b style="color:var(--red)">Tropisch vs. Siderisch:</b> De astrologie zegt <b>'+tropSign.name+'</b>, maar astronomisch stond de zon in <b>'+siderSign.name+'</b> '+siderSign.symbol+'. ';
+    html += 'Dit komt door precessie (~'+ayan.toFixed(1)+'\u00b0 verschuiving sinds Ptolemaeus).';
     html += '</div>';
   }
 
-  // Planet table
-  html += '<h3 style="color:var(--blue)">Planeetposities bij geboorte</h3>';
-  html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+  // Planet positions
+  html += '<h3 style="color:var(--blue)">\ud83c\udf0c Planeetposities bij geboorte</h3>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
   planetPositions.forEach(function(pp){
     html += '<div style="background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:5px">';
     html += '<span class="planet-dot" style="background:'+pp.color+';width:8px;height:8px"></span>';
@@ -697,8 +922,32 @@ function calcHoroscope(){
   });
   html += '</div>';
 
-  html += '</div>';
+  // Compatibility
+  html += buildCompatibilityHTML(tropSign, ascSign);
+
+  html += '</div>'; // close profile-card
   document.getElementById('horoscopeResult').innerHTML = html;
+
+  // Draw natal chart
+  document.getElementById('natalChartSection').style.display = 'block';
+  drawNatalChart(asc.longitude, asc.mc, planetPositions, sunLon);
+
+  // Natal chart info panel
+  var infoHtml = '<div class="card" style="margin:0">';
+  infoHtml += '<h2 style="font-size:14px"><span class="mi" style="color:var(--purple)">donut_large</span> Geboortekaart</h2>';
+  infoHtml += '<p style="font-size:11px;color:var(--tx2);margin-bottom:10px">De buitenring toont de 12 sterrenbeelden, de binnenring de 12 huizen (gelijk-huis-systeem vanaf je ascendant). De gele lijn is je ascendant (ASC), de paarse lijn is het Medium Coeli (MC).</p>';
+
+  infoHtml += '<div class="result-row"><span class="result-label">\u2609 Zon</span><span class="result-val gold">'+tropSign.symbol+' '+tropSign.name+' ('+sunLon.toFixed(1)+'\u00b0)</span></div>';
+  if(moonSign) infoHtml += '<div class="result-row"><span class="result-label">\u263d Maan</span><span class="result-val">'+moonSign.symbol+' '+moonSign.name+'</span></div>';
+  infoHtml += '<div class="result-row"><span class="result-label">\u2191 ASC</span><span class="result-val purple">'+ascSign.symbol+' '+ascSign.name+' ('+asc.degInSign.toFixed(1)+'\u00b0)</span></div>';
+  infoHtml += '<div class="result-row"><span class="result-label">MC</span><span class="result-val">'+asc.mc.toFixed(1)+'\u00b0</span></div>';
+
+  planetPositions.forEach(function(pp){
+    infoHtml += '<div class="result-row"><span class="result-label"><span class="planet-dot" style="background:'+pp.color+'"></span>'+pp.name+'</span><span class="result-val">'+pp.sign+' ('+pp.lon.toFixed(1)+'\u00b0)</span></div>';
+  });
+
+  infoHtml += '</div>';
+  document.getElementById('natalInfo').innerHTML = infoHtml;
 }
 
 // Build zodiac grid
@@ -1047,6 +1296,379 @@ function updateEvents(date, observer){
 }
 
 // ============================================================
+// ASCENDANT CALCULATION
+// ============================================================
+function calcAscendant(date, lat, lon){
+  // Calculate Local Sidereal Time
+  var jd = getJulianDate(date);
+  var T = (jd - 2451545.0) / 36525.0;
+  // Greenwich Mean Sidereal Time in degrees
+  var GMST = 280.46061837 + 360.98564736629 * (jd - 2451545.0)
+             + 0.000387933 * T * T - T * T * T / 38710000.0;
+  GMST = ((GMST % 360) + 360) % 360;
+  // Local Sidereal Time
+  var LST = ((GMST + lon) % 360 + 360) % 360;
+  var RAMC = LST; // Right Ascension of Medium Coeli in degrees
+
+  // Obliquity of ecliptic
+  var obliquity = 23.4393 - 0.0130 * T; // simplified
+  var oblRad = obliquity * Math.PI / 180;
+  var latRad = lat * Math.PI / 180;
+  var ramcRad = RAMC * Math.PI / 180;
+
+  // Ascendant formula
+  var ascRad = Math.atan2(-Math.cos(ramcRad),
+    Math.sin(ramcRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad));
+  var ascDeg = ascRad * 180 / Math.PI;
+  ascDeg = ((ascDeg % 360) + 360) % 360;
+
+  // Find zodiac sign
+  var signIdx = Math.floor(ascDeg / 30) % 12;
+  var degInSign = ascDeg % 30;
+  return {longitude: ascDeg, sign: ZODIAC[signIdx], degInSign: degInSign, mc: RAMC};
+}
+
+function getJulianDate(date){
+  var y = date.getUTCFullYear();
+  var m = date.getUTCMonth() + 1;
+  var d = date.getUTCDate() + date.getUTCHours()/24 + date.getUTCMinutes()/1440 + date.getUTCSeconds()/86400;
+  if(m <= 2){ y--; m += 12; }
+  var A = Math.floor(y / 100);
+  var B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+
+// ============================================================
+// NATAL CHART WHEEL
+// ============================================================
+function drawNatalChart(ascLon, mcLon, planetPositions, sunLon){
+  var canvas = document.getElementById('natalChartCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2;
+  var R = Math.min(W,H)/2 - 30;
+  var R2 = R * 0.82;
+  var R3 = R * 0.65;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  var bgGrad = ctx.createRadialGradient(cx,cy,0,cx,cy,R+20);
+  bgGrad.addColorStop(0,'#0a1025');
+  bgGrad.addColorStop(1,'#050810');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0,0,W,H);
+
+  // Rotation: ASC should be at the left (180°/9 o'clock position)
+  var ascOffset = -ascLon - 180;
+
+  // Draw zodiac segments (outer ring)
+  ZODIAC.forEach(function(z, i){
+    var startDeg = i * 30 + ascOffset;
+    var endDeg = (i + 1) * 30 + ascOffset;
+    var startRad = startDeg * Math.PI / 180;
+    var endRad = endDeg * Math.PI / 180;
+
+    // Colored segment
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, startRad, endRad);
+    ctx.arc(cx, cy, R2, endRad, startRad, true);
+    ctx.closePath();
+    ctx.fillStyle = z.color + '20';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(148,163,184,.12)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Zodiac symbol
+    var midRad = (startRad + endRad) / 2;
+    var symR = (R + R2) / 2;
+    var sx = cx + symR * Math.cos(midRad);
+    var sy = cy + symR * Math.sin(midRad);
+    ctx.font = '18px serif';
+    ctx.fillStyle = z.color + 'cc';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(z.symbol, sx, sy);
+  });
+
+  // House lines (equal houses from ASC)
+  for(var h = 0; h < 12; h++){
+    var hDeg = h * 30 + ascOffset;
+    var hRad = hDeg * Math.PI / 180;
+    ctx.beginPath();
+    ctx.moveTo(cx + R2 * Math.cos(hRad), cy + R2 * Math.sin(hRad));
+    ctx.lineTo(cx + R3 * Math.cos(hRad), cy + R3 * Math.sin(hRad));
+    ctx.strokeStyle = 'rgba(148,163,184,.15)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // House number
+    var hnRad = (h * 30 + 15 + ascOffset) * Math.PI / 180;
+    var hnR = (R2 + R3) / 2;
+    ctx.font = '9px "Space Mono"';
+    ctx.fillStyle = 'rgba(148,163,184,.3)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(h + 1, cx + hnR * Math.cos(hnRad), cy + hnR * Math.sin(hnRad));
+  }
+
+  // Inner circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, R3, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(148,163,184,.1)';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  // ASC line (left, horizontal)
+  var ascRad = (ascOffset + ascLon) * Math.PI / 180;
+  // ASC is always at 180° (left) by our rotation
+  ctx.beginPath();
+  ctx.moveTo(cx - R - 10, cy);
+  ctx.lineTo(cx + R + 10, cy);
+  ctx.strokeStyle = 'rgba(251,191,36,.4)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ASC label
+  ctx.font = '700 11px "DM Sans"';
+  ctx.fillStyle = '#fbbf24';
+  ctx.textAlign = 'right';
+  ctx.fillText('ASC', cx - R - 14, cy - 5);
+
+  // MC line (top)
+  var mcDeg = (mcLon + ascOffset) * Math.PI / 180;
+  ctx.beginPath();
+  ctx.moveTo(cx + (R+10) * Math.cos(mcDeg), cy + (R+10) * Math.sin(mcDeg));
+  ctx.lineTo(cx - (R+10) * Math.cos(mcDeg), cy - (R+10) * Math.sin(mcDeg));
+  ctx.strokeStyle = 'rgba(168,85,247,.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '700 10px "DM Sans"';
+  ctx.fillStyle = '#a855f7';
+  ctx.textAlign = 'center';
+  ctx.fillText('MC', cx + (R+18) * Math.cos(mcDeg), cy + (R+18) * Math.sin(mcDeg));
+
+  // Plot planets
+  var planetR = R3 * 0.75;
+  var plotted = [];
+  planetPositions.forEach(function(pp){
+    var pDeg = pp.lon + ascOffset;
+    var pRad = pDeg * Math.PI / 180;
+
+    // Avoid overlap: nudge if too close to another planet
+    var px = cx + planetR * Math.cos(pRad);
+    var py = cy + planetR * Math.sin(pRad);
+    for(var pi = 0; pi < plotted.length; pi++){
+      var dx = px - plotted[pi].x, dy = py - plotted[pi].y;
+      if(Math.sqrt(dx*dx + dy*dy) < 20){
+        planetR *= 0.88;
+        px = cx + planetR * Math.cos(pRad);
+        py = cy + planetR * Math.sin(pRad);
+      }
+    }
+    plotted.push({x:px, y:py});
+
+    // Line from outer ring to planet
+    ctx.beginPath();
+    ctx.moveTo(cx + R2 * Math.cos(pRad), cy + R2 * Math.sin(pRad));
+    ctx.lineTo(px, py);
+    ctx.strokeStyle = pp.color + '40';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+
+    // Planet dot
+    var glow = ctx.createRadialGradient(px, py, 0, px, py, 10);
+    glow.addColorStop(0, pp.color + '60');
+    glow.addColorStop(1, pp.color + '00');
+    ctx.fillStyle = glow;
+    ctx.fillRect(px-10, py-10, 20, 20);
+
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI*2);
+    ctx.fillStyle = pp.color;
+    ctx.fill();
+
+    // Label
+    ctx.font = '500 8px "DM Sans"';
+    ctx.fillStyle = pp.color;
+    ctx.textAlign = 'center';
+    ctx.fillText(pp.name.substring(0,3), px, py - 8);
+
+    planetR = R3 * 0.75; // reset
+  });
+
+  // Sun marker (special)
+  var sunDeg = sunLon + ascOffset;
+  var sunRad = sunDeg * Math.PI / 180;
+  var sunX = cx + R2 * Math.cos(sunRad);
+  var sunY = cy + R2 * Math.sin(sunRad);
+  var sunGlow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 12);
+  sunGlow.addColorStop(0, 'rgba(251,191,36,.5)');
+  sunGlow.addColorStop(1, 'rgba(251,191,36,0)');
+  ctx.fillStyle = sunGlow;
+  ctx.fillRect(sunX-12, sunY-12, 24, 24);
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, 5, 0, Math.PI*2);
+  ctx.fillStyle = '#fbbf24';
+  ctx.fill();
+  ctx.font = '700 8px "DM Sans"';
+  ctx.fillStyle = '#fbbf24';
+  ctx.textAlign = 'center';
+  ctx.fillText('\u2609', sunX, sunY - 9);
+
+  // Center label
+  ctx.font = '10px "DM Sans"';
+  ctx.fillStyle = 'rgba(148,163,184,.3)';
+  ctx.textAlign = 'center';
+  ctx.fillText('Geboortekaart', cx, cy);
+}
+
+// ============================================================
+// STAR CHART TOOLTIPS
+// ============================================================
+function setupStarTooltips(){
+  var canvas = document.getElementById('skyCanvas');
+  var tooltip = document.getElementById('starTooltip');
+
+  canvas.addEventListener('mousemove', function(e){
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var mx = (e.clientX - rect.left) * scaleX;
+    var my = (e.clientY - rect.top) * scaleY;
+
+    var closest = null;
+    var closestDist = 20; // pixel threshold
+
+    // Check stars
+    for(var i = 0; i < _renderedStars.length; i++){
+      var s = _renderedStars[i];
+      var dx = mx - s.x, dy = my - s.y;
+      var d = Math.sqrt(dx*dx + dy*dy);
+      if(d < closestDist){
+        closestDist = d;
+        closest = {type:'star', data:s};
+      }
+    }
+    // Check planets
+    for(var j = 0; j < _renderedPlanets.length; j++){
+      var p = _renderedPlanets[j];
+      var dx2 = mx - p.x, dy2 = my - p.y;
+      var d2 = Math.sqrt(dx2*dx2 + dy2*dy2);
+      if(d2 < closestDist){
+        closestDist = d2;
+        closest = {type:'planet', data:p};
+      }
+    }
+
+    if(closest){
+      var html = '';
+      if(closest.type === 'star'){
+        var info = STAR_FACTS[closest.data.name];
+        html = '<div class="tt-name">\u2b50 ' + closest.data.name + '</div>';
+        html += '<div class="tt-meta">';
+        html += '<span class="tt-mag">\u2728 mag ' + closest.data.mag.toFixed(2) + '</span>';
+        if(info){
+          html += '<span>' + info.dist + '</span>';
+          html += '<span>' + info.constellation + '</span>';
+        }
+        html += '</div>';
+        if(info) html += '<div class="tt-fact">' + info.fact + '</div>';
+      } else {
+        html = '<div class="tt-name" style="color:'+closest.data.color+'">' + closest.data.name + '</div>';
+        html += '<div class="tt-meta">';
+        html += '<span>Alt: ' + closest.data.alt.toFixed(1) + '\u00b0</span>';
+        html += '<span>Az: ' + closest.data.az.toFixed(1) + '\u00b0</span>';
+        html += '</div>';
+      }
+      tooltip.innerHTML = html;
+      tooltip.classList.add('visible');
+      // Position
+      var tx = e.clientX + 16;
+      var ty = e.clientY - 10;
+      if(tx + 280 > window.innerWidth) tx = e.clientX - 290;
+      if(ty + 100 > window.innerHeight) ty = e.clientY - 110;
+      tooltip.style.left = tx + 'px';
+      tooltip.style.top = ty + 'px';
+    } else {
+      tooltip.classList.remove('visible');
+    }
+  });
+
+  canvas.addEventListener('mouseleave', function(){
+    tooltip.classList.remove('visible');
+  });
+}
+
+// ============================================================
+// COMPATIBILITY
+// ============================================================
+function getCompatibilityScore(sign1, sign2){
+  if(sign1.id === sign2.id) return {score:3, label:'Goed', reason:'Zelfde teken \u2014 jullie begrijpen elkaars kracht en zwakte.'};
+  if(sign1.bestMatch === sign2.id) return {score:5, label:'Perfect', reason:'Jullie elementen versterken elkaar en maken een onverslaanbaar duo!'};
+  if(sign1.compatible.indexOf(sign2.id) >= 0) return {score:4, label:'Heel goed', reason:'Harmonieuze combinatie van elementen en energie.'};
+  // Same element = good
+  if(sign1.element === sign2.element) return {score:4, label:'Heel goed', reason:'Zelfde element ('+sign1.element+') \u2014 jullie spreken dezelfde taal.'};
+  // Complementary elements
+  var comp = {'Vuur':'Lucht','Lucht':'Vuur','Aarde':'Water','Water':'Aarde'};
+  if(comp[sign1.element] === sign2.element) return {score:3, label:'Goed', reason:sign1.element+' en '+sign2.element+' voeden elkaar.'};
+  // Challenging
+  return {score:2, label:'Uitdagend', reason:'Verschillende elementen ('+sign1.element+' vs '+sign2.element+') \u2014 kan groeien door contrast.'};
+}
+
+function buildCompatibilityHTML(sunSign, ascSign){
+  var html = '<h3 style="color:var(--cyan)">\u2764\ufe0f Compatibiliteit</h3>';
+  html += '<p style="font-size:11px;color:var(--tx2);margin-bottom:8px">Op basis van jouw zonteken ('+sunSign.name+') en ascendant ('+ascSign.name+'):</p>';
+  html += '<div class="compat-grid">';
+
+  ZODIAC.forEach(function(z){
+    var sunCompat = getCompatibilityScore(sunSign, z);
+    var ascCompat = getCompatibilityScore(ascSign, z);
+    var avg = (sunCompat.score + ascCompat.score) / 2;
+    var stars = '';
+    for(var s = 0; s < 5; s++) stars += s < Math.round(avg) ? '\u2605' : '\u2606';
+    var isBest = avg >= 4.5;
+
+    html += '<div class="compat-card'+(isBest?' best':'')+'">';
+    html += '<div class="compat-symbol">'+z.symbol+'</div>';
+    html += '<div class="compat-name">'+z.name+'</div>';
+    html += '<div class="compat-stars">'+stars+'</div>';
+    html += '<div style="font:9px var(--mono);color:var(--tx3);margin-top:2px">'+sunCompat.label+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Best matches detail
+  var bestMatches = [];
+  ZODIAC.forEach(function(z){
+    var sc = getCompatibilityScore(sunSign, z);
+    var ac = getCompatibilityScore(ascSign, z);
+    bestMatches.push({sign:z, score:(sc.score+ac.score)/2, sunReason:sc.reason, ascReason:ac.reason});
+  });
+  bestMatches.sort(function(a,b){ return b.score - a.score; });
+
+  html += '<div style="margin-top:12px">';
+  html += '<h3 style="color:var(--green)">Top 3 Beste Matches</h3>';
+  bestMatches.slice(0,3).forEach(function(m, i){
+    var medal = ['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'][i];
+    html += '<div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);margin-bottom:6px">';
+    html += '<span style="font-size:20px">'+medal+'</span>';
+    html += '<span style="font-size:22px">'+m.sign.symbol+'</span>';
+    html += '<div style="flex:1"><div style="font:600 12px var(--font)">'+m.sign.name+'</div>';
+    html += '<div style="font:10px var(--font);color:var(--tx2)">'+m.sunReason+'</div></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  return html;
+}
+
+// ============================================================
 // INIT
 // ============================================================
 (function init(){
@@ -1054,6 +1676,7 @@ function updateEvents(date, observer){
   buildZodiacGrid();
   buildShiftTable();
   updatePrecess();
+  setupStarTooltips();
 })();
 </script>
 </body>
