@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Temp files
+*.log
+*.tmp
+nul
+NUL
+
+# Claude Code
+.claude/
