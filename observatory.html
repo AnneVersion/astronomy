@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Virtueel Observatorium — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#050510;--bg2:#0a0b1e;--bg3:#12143a;
+  --surface:rgba(14,16,42,.75);--glass:rgba(14,16,42,.5);--glass-bd:rgba(148,163,184,.1);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --magenta:#d946ef;--neon:#818cf8;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+
+/* Nebula background */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse at 15% 30%,rgba(168,85,247,.07) 0%,transparent 50%),
+  radial-gradient(ellipse at 85% 20%,rgba(59,130,246,.06) 0%,transparent 45%),
+  radial-gradient(ellipse at 50% 70%,rgba(217,70,239,.04) 0%,transparent 50%),
+  radial-gradient(ellipse at 70% 90%,rgba(6,182,212,.04) 0%,transparent 40%);
+  pointer-events:none;z-index:0}
+
+/* Animated star canvas */
+#starCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:100;background:rgba(5,5,16,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold);text-decoration:none}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--purple);background:rgba(168,85,247,.1)}
+.tab .mi{font-size:16px}
+
+/* Section nav */
+.section-nav{background:rgba(5,5,16,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--glass-bd);padding:0 20px;position:sticky;top:50px;z-index:99}
+.section-nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:42px;gap:4px;overflow-x:auto;scrollbar-width:none}
+.section-nav-inner::-webkit-scrollbar{display:none}
+.snav{padding:5px 12px;border-radius:var(--rs);font:600 11px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;border:none;background:none;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.snav:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.snav.active{color:var(--purple);background:rgba(168,85,247,.1)}
+.snav .mi{font-size:15px}
+
+/* Content */
+.wrap{max-width:1400px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.section{display:none}.section.active{display:block}
+.card{background:var(--surface);backdrop-filter:blur(14px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:24px;margin-bottom:16px;transition:border-color .3s}
+.card:hover{border-color:rgba(168,85,247,.2)}
+.card h2{font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h2 .mi{color:var(--purple)}
+.card h3{font-size:13px;font-weight:600;margin:14px 0 8px;color:var(--purple)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+.btn{padding:8px 18px;border-radius:var(--rs);font:600 12px var(--font);cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-1px)}
+.btn-purple{background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(168,85,247,.1));color:var(--purple);border:1px solid rgba(168,85,247,.25)}
+.btn-purple:hover{background:linear-gradient(135deg,rgba(168,85,247,.3),rgba(168,85,247,.15))}
+.btn-gold{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.1));color:var(--gold);border:1px solid rgba(251,191,36,.25)}
+.btn-gold:hover{background:linear-gradient(135deg,rgba(251,191,36,.3),rgba(251,191,36,.15))}
+.btn-cyan{background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.1));color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.btn-cyan:hover{background:linear-gradient(135deg,rgba(6,182,212,.3),rgba(6,182,212,.15))}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-active{background:rgba(168,85,247,.18)!important;color:var(--purple)!important;border-color:rgba(168,85,247,.3)!important}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font:10px var(--mono);border:1px solid var(--glass-bd);color:var(--tx3);margin:2px}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--tx3);font:14px var(--font)}
+.loading::after{content:'';display:inline-block;width:16px;height:16px;border:2px solid var(--purple);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{text-align:center;padding:30px;color:var(--red);font:13px var(--font);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:var(--r)}
+
+/* ===== APOD ===== */
+.apod-hero{position:relative;border-radius:var(--r);overflow:hidden;background:#000;cursor:pointer;margin-bottom:16px}
+.apod-hero img{width:100%;max-height:75vh;object-fit:contain;display:block;transition:transform .4s}
+.apod-hero:hover img{transform:scale(1.02)}
+.apod-hero .apod-overlay{position:absolute;bottom:0;left:0;right:0;padding:24px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.apod-hero .apod-overlay h2{color:#fff;font-size:22px;margin-bottom:4px}
+.apod-hero .apod-overlay .date{font:12px var(--mono);color:rgba(255,255,255,.6)}
+.apod-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.apod-explanation{font:13px/1.9 var(--font);color:var(--tx2);max-height:180px;overflow-y:auto;padding-right:8px}
+.apod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px}
+.apod-thumb{position:relative;border-radius:var(--rs);overflow:hidden;cursor:pointer;aspect-ratio:16/10;background:#000;border:2px solid transparent;transition:all .3s}
+.apod-thumb:hover{border-color:var(--purple);transform:translateY(-2px)}
+.apod-thumb img{width:100%;height:100%;object-fit:cover}
+.apod-thumb .thumb-info{position:absolute;bottom:0;left:0;right:0;padding:8px;background:linear-gradient(transparent,rgba(0,0,0,.8));font:600 11px var(--font);color:#fff}
+.apod-thumb .thumb-date{font:9px var(--mono);color:rgba(255,255,255,.5);margin-top:2px}
+
+/* Fullscreen viewer */
+.fullscreen-viewer{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;cursor:zoom-out}
+.fullscreen-viewer.show{display:flex}
+.fullscreen-viewer img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px}
+.fullscreen-viewer .close-fs{position:absolute;top:20px;right:20px;color:#fff;font-size:32px;cursor:pointer;background:none;border:none;z-index:1001}
+.fullscreen-viewer .fs-info{position:absolute;bottom:20px;left:20px;right:20px;text-align:center;color:rgba(255,255,255,.7);font:12px var(--font)}
+
+/* ===== DEEP SPACE ===== */
+.search-box{display:flex;gap:8px;margin-bottom:16px}
+.search-box input{flex:1;padding:10px 16px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:13px var(--font);outline:none;transition:border-color .2s}
+.search-box input:focus{border-color:var(--purple)}
+.search-box input::placeholder{color:var(--tx3)}
+.hubble-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.hubble-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .3s}
+.hubble-card:hover{transform:translateY(-3px);border-color:var(--purple)}
+.hubble-card img{width:100%;height:220px;object-fit:cover}
+.hubble-card .hc-info{padding:14px}
+.hubble-card .hc-info h3{font:600 14px var(--font);color:var(--tx);margin-bottom:4px}
+.hubble-card .hc-info p{font:11px var(--mono);color:var(--tx3)}
+.quick-picks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+
+/* ===== SOLAR ===== */
+.sun-hero{text-align:center;margin-bottom:16px}
+.sun-hero img{width:320px;height:320px;border-radius:50%;border:3px solid rgba(251,191,36,.3);box-shadow:0 0 60px rgba(251,191,36,.15),0 0 120px rgba(251,191,36,.05);transition:transform .3s}
+.sun-hero img:hover{transform:scale(1.05)}
+.sun-hero .sun-label{font:11px var(--mono);color:var(--tx3);margin-top:8px}
+.sun-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.sun-stat{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:14px;text-align:center}
+.sun-stat .val{font:700 22px var(--mono);margin-bottom:2px}
+.sun-stat .val.red{color:var(--red)}.sun-stat .val.gold{color:var(--gold)}.sun-stat .val.cyan{color:var(--cyan)}.sun-stat .val.green{color:var(--green)}
+.sun-stat .lbl{font:11px var(--font);color:var(--tx3)}
+.flare-table{width:100%;border-collapse:collapse;font-size:12px}
+.flare-table th{text-align:left;padding:8px 10px;color:var(--tx3);font:600 10px var(--font);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-bd)}
+.flare-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03)}
+.flare-table tr:hover{background:rgba(255,255,255,.02)}
+.flare-class{font:700 12px var(--mono);padding:2px 8px;border-radius:4px}
+.flare-X{color:#ff4444;background:rgba(255,68,68,.12)}.flare-M{color:#ff8800;background:rgba(255,136,0,.12)}.flare-C{color:var(--gold);background:rgba(251,191,36,.1)}.flare-B{color:var(--cyan);background:rgba(6,182,212,.1)}
+.sdo-wavelengths{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ===== CONSTELLATIONS ===== */
+.constellation-canvas-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#020208}
+.constellation-canvas-wrap canvas{display:block;width:100%;cursor:crosshair}
+.constellation-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.constellation-controls label{font:500 11px var(--font);color:var(--tx2);display:flex;align-items:center;gap:4px;cursor:pointer}
+.constellation-controls input[type="checkbox"]{accent-color:var(--purple)}
+.constellation-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:12px}
+.constellation-item{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.constellation-item:hover{border-color:var(--purple);background:rgba(168,85,247,.06)}
+.constellation-item.selected{border-color:var(--purple);background:rgba(168,85,247,.1)}
+.constellation-item .c-symbol{font-size:20px;width:28px;text-align:center}
+.constellation-item .c-name{font:600 12px var(--font)}
+.constellation-item .c-latin{font:10px var(--mono);color:var(--tx3)}
+.constellation-info{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(59,130,246,.05));border:1px solid rgba(168,85,247,.2);border-radius:var(--r);padding:20px;margin-top:16px;display:none}
+.constellation-info.show{display:block}
+.constellation-info h3{font:700 18px var(--font);color:var(--purple);margin-bottom:4px}
+.constellation-info .myth{font:13px/1.8 var(--font);color:var(--tx2);margin-top:8px}
+
+/* ===== GALAXY ===== */
+.galaxy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.galaxy-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);overflow:hidden;transition:all .3s;cursor:pointer}
+.galaxy-card:hover{transform:translateY(-3px);border-color:var(--magenta)}
+.galaxy-card img{width:100%;height:200px;object-fit:cover}
+.galaxy-card .gc-info{padding:14px}
+.galaxy-card .gc-info h3{font:700 14px var(--font);margin-bottom:4px}
+.galaxy-card .gc-info p{font:12px var(--font);color:var(--tx2);line-height:1.6}
+.tuning-fork{position:relative;margin:20px 0}
+.tuning-fork canvas{width:100%;display:block;border-radius:var(--r)}
+.quiz-box{background:linear-gradient(135deg,rgba(217,70,239,.08),rgba(168,85,247,.06));border:1px solid rgba(217,70,239,.2);border-radius:var(--r);padding:20px;text-align:center}
+.quiz-box img{max-width:400px;width:100%;border-radius:var(--rs);margin:12px 0}
+.quiz-options{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.quiz-result{font:600 14px var(--font);margin-top:12px;padding:8px;border-radius:var(--rs)}
+.quiz-result.correct{color:var(--green);background:rgba(34,197,94,.1)}.quiz-result.wrong{color:var(--red);background:rgba(239,68,68,.1)}
+
+/* ===== SCALE ===== */
+.scale-container{position:relative;height:600px;overflow:hidden;border-radius:var(--r);background:linear-gradient(180deg,#020208 0%,#0a0520 50%,#020208 100%)}
+.scale-container canvas{width:100%;height:100%;display:block}
+.scale-hud{position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.scale-hud span{font:11px var(--mono);color:var(--tx2);background:rgba(5,5,16,.8);padding:4px 10px;border-radius:4px}
+.scale-slider{width:100%;margin:12px 0;accent-color:var(--purple)}
+.scale-objects{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+/* ===== GRAVITATIONAL WAVES ===== */
+.gw-canvas-wrap{position:relative;border-radius:var(--r);overflow:hidden;background:#020208}
+.gw-canvas-wrap canvas{width:100%;display:block}
+.gw-events{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:16px}
+.gw-event{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .3s}
+.gw-event:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.gw-event.selected{border-color:var(--cyan);background:rgba(6,182,212,.06)}
+.gw-event h3{font:700 14px var(--font);color:var(--cyan);margin-bottom:4px}
+.gw-event .gw-detail{font:11px var(--mono);color:var(--tx3);margin:2px 0}
+.gw-event .gw-desc{font:12px var(--font);color:var(--tx2);margin-top:6px;line-height:1.5}
+.merger-canvas{border-radius:var(--r);background:#020208;display:block;width:100%;margin-top:12px}
+
+/* ===== SPECTROSCOPY ===== */
+.spectrum-bar{height:60px;border-radius:var(--rs);margin:12px 0;position:relative;background:linear-gradient(90deg,#000 0%,#4b0082 5%,#0000ff 15%,#00bfff 25%,#00ff00 40%,#ffff00 55%,#ff8c00 70%,#ff0000 85%,#8b0000 100%);overflow:hidden}
+.spectrum-line{position:absolute;top:0;bottom:0;width:2px;transition:left .3s}
+.spectrum-line::after{content:attr(data-nm);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font:9px var(--mono);color:var(--tx2);white-space:nowrap}
+.element-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.element-btn{padding:12px 8px;border-radius:var(--rs);text-align:center;cursor:pointer;transition:all .2s;border:1px solid var(--glass-bd);background:var(--glass);font:600 13px var(--font);color:var(--tx)}
+.element-btn:hover{border-color:var(--purple);background:rgba(168,85,247,.08)}
+.element-btn.selected{border-color:var(--purple);background:rgba(168,85,247,.12);color:var(--purple)}
+.element-btn .symbol{font:700 20px var(--mono);display:block;margin-bottom:2px}
+.element-btn .el-name{font:10px var(--font);color:var(--tx3)}
+.redshift-demo{margin-top:16px}
+.redshift-demo input[type="range"]{width:100%;accent-color:var(--purple)}
+.redshift-label{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--tx3);margin-top:4px}
+
+/* ===== TIMELINE ===== */
+.timeline-container{position:relative;padding:20px 0 20px 40px}
+.timeline-line{position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--purple),var(--blue),var(--cyan),var(--green),var(--gold))}
+.timeline-event{position:relative;margin-bottom:32px;padding-left:30px}
+.timeline-event::before{content:'';position:absolute;left:-31px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid var(--purple);background:var(--bg);z-index:1}
+.timeline-event.major::before{background:var(--purple);box-shadow:0 0 12px var(--purple)}
+.timeline-event .te-time{font:700 11px var(--mono);color:var(--purple);margin-bottom:2px}
+.timeline-event .te-temp{font:10px var(--mono);color:var(--tx3)}
+.timeline-event h3{font:700 16px var(--font);margin:4px 0}
+.timeline-event p{font:12px/1.7 var(--font);color:var(--tx2)}
+.timeline-event .te-icon{font-size:28px;margin-bottom:4px}
+
+/* Responsive */
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .section-nav-inner{gap:2px}
+  .snav{font-size:10px;padding:4px 8px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .sun-hero img{width:220px;height:220px}
+  .scale-container{height:400px}
+  .apod-grid{grid-template-columns:1fr 1fr}
+  .hubble-grid{grid-template-columns:1fr}
+  .galaxy-grid{grid-template-columns:1fr}
+  .gw-events{grid-template-columns:1fr}
+  .element-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+
+<!-- Fullscreen image viewer -->
+<div class="fullscreen-viewer" id="fsViewer" onclick="closeFullscreen()">
+  <button class="close-fs" onclick="closeFullscreen()"><span class="mi">close</span></button>
+  <img id="fsImg" src="" alt="">
+  <div class="fs-info" id="fsInfo"></div>
+</div>
+
+<!-- Top bar -->
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+      <a class="tab active" href="observatory.html"><span class="mi">telescope</span> Observatorium</a>
+    </div>
+  </div>
+</div>
+
+<!-- Section navigation -->
+<div class="section-nav">
+  <div class="section-nav-inner">
+    <button class="snav active" onclick="showSection('apod')"><span class="mi">photo_library</span> APOD</button>
+    <button class="snav" onclick="showSection('deepspace')"><span class="mi">lens_blur</span> Deep Space</button>
+    <button class="snav" onclick="showSection('solar')"><span class="mi">wb_sunny</span> Zon</button>
+    <button class="snav" onclick="showSection('constellations')"><span class="mi">star_rate</span> Sterrenhemel</button>
+    <button class="snav" onclick="showSection('galaxies')"><span class="mi">blur_on</span> Melkwegstelsels</button>
+    <button class="snav" onclick="showSection('scale')"><span class="mi">straighten</span> Schaal</button>
+    <button class="snav" onclick="showSection('waves')"><span class="mi">waves</span> Golven</button>
+    <button class="snav" onclick="showSection('spectroscopy')"><span class="mi">science</span> Spectroscopie</button>
+    <button class="snav" onclick="showSection('timeline')"><span class="mi">timeline</span> Tijdlijn</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ==================== SECTION 1: APOD ==================== -->
+<div class="section active" id="sec-apod">
+  <div class="card">
+    <h2><span class="mi">photo_library</span> NASA Foto van de Dag</h2>
+    <div class="apod-meta" id="apodMeta">
+      <input type="date" id="apodDate" style="padding:6px 10px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:12px var(--mono)">
+      <button class="btn btn-purple btn-sm" onclick="loadApodByDate()"><span class="mi" style="font-size:14px">search</span> Zoek datum</button>
+      <button class="btn btn-gold btn-sm" onclick="loadApodToday()"><span class="mi" style="font-size:14px">today</span> Vandaag</button>
+      <button class="btn btn-cyan btn-sm" id="hdToggle" onclick="toggleHD()"><span class="mi" style="font-size:14px">hd</span> HD</button>
+    </div>
+    <div id="apodHero" class="loading">Laden...</div>
+    <div id="apodExplanation"></div>
+  </div>
+  <div class="card">
+    <h2><span class="mi">collections</span> Galerij — Recente Ontdekkingen</h2>
+    <div id="apodGallery" class="apod-grid loading">Laden...</div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 2: DEEP SPACE ==================== -->
+<div class="section" id="sec-deepspace">
+  <div class="card">
+    <h2><span class="mi">lens_blur</span> Hubble & Webb Deep Space Viewer</h2>
+    <div class="search-box">
+      <input type="text" id="hubbleSearch" placeholder="Zoek een hemellichaam... (bijv. Orion Nebula, Andromeda, Crab Nebula)" onkeydown="if(event.key==='Enter')searchHubble()">
+      <button class="btn btn-purple" onclick="searchHubble()"><span class="mi" style="font-size:16px">search</span> Zoek</button>
+    </div>
+    <div class="quick-picks">
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('eagle nebula')">Adelaarsnevel</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('crab nebula')">Krabnevel</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('andromeda')">Andromeda</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('pillars of creation')">Pillars of Creation</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('orion nebula')">Orionnevel</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('whirlpool galaxy')">Draaikolksterrenstelsel</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('ring nebula')">Ringnevel</button>
+      <button class="btn btn-sm btn-purple" onclick="searchHubble('sombrero galaxy')">Sombrerostelsel</button>
+    </div>
+    <div id="hubbleResults" class="hubble-grid"></div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 3: SOLAR ==================== -->
+<div class="section" id="sec-solar">
+  <div class="card">
+    <h2><span class="mi">wb_sunny</span> Live Zonneactiviteit</h2>
+    <div class="row">
+      <div class="col">
+        <div class="sun-hero">
+          <img id="sunImage" src="https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg" alt="Zon - SDO AIA 193" crossorigin="anonymous">
+          <div class="sun-label" id="sunLabel">SDO/AIA 193 Angstrom — Live beeld</div>
+        </div>
+        <div class="sdo-wavelengths">
+          <button class="btn btn-sm btn-active" onclick="changeSunWavelength('0193','193 A - Coronale lussen',this)">193 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('0171','171 A - Actieve regio',this)">171 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('0304','304 A - Chromosfeer',this)">304 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('0131','131 A - Fakkels',this)">131 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('0211','211 A - Actieve regio',this)">211 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('0335','335 A - Warme corona',this)">335 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('1700','1700 A - Oppervlak',this)">1700 A</button>
+          <button class="btn btn-sm btn-purple" onclick="changeSunWavelength('HMIIC','HMI - Zonnecontinuum',this)">HMI</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sun-stats" id="sunStats">
+          <div class="sun-stat"><div class="val gold" id="ssFlares">--</div><div class="lbl">Zonnevlammen (7d)</div></div>
+          <div class="sun-stat"><div class="val red" id="ssXFlares">--</div><div class="lbl">X-klasse vlammen</div></div>
+          <div class="sun-stat"><div class="val cyan" id="ssCME">--</div><div class="lbl">CME Uitbarstingen</div></div>
+          <div class="sun-stat"><div class="val green" id="ssGeoStorm">--</div><div class="lbl">Geomagnetische stormen</div></div>
+        </div>
+        <h3>Recente Zonnevlammen</h3>
+        <div id="flareTable" class="loading">Laden...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 4: CONSTELLATIONS ==================== -->
+<div class="section" id="sec-constellations">
+  <div class="card">
+    <h2><span class="mi">star_rate</span> Sterrenbeelden Viewer</h2>
+    <div class="constellation-controls">
+      <label><input type="checkbox" id="showLines" checked> Verbindingslijnen</label>
+      <label><input type="checkbox" id="showNames" checked> Namen</label>
+      <label><input type="checkbox" id="showStarNames"> Sternamen</label>
+      <label><input type="checkbox" id="showGrid"> Coördinatennet</label>
+      <span style="color:var(--tx3);font:11px var(--font);margin-left:8px">Maand:</span>
+      <select id="monthSelect" style="padding:5px 8px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:12px var(--mono)" onchange="drawConstellations()">
+        <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maart</option>
+        <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+        <option value="6">Juli</option><option value="7">Augustus</option><option value="8">September</option>
+        <option value="9">Oktober</option><option value="10">November</option><option value="11">December</option>
+      </select>
+    </div>
+    <div class="constellation-canvas-wrap">
+      <canvas id="constellationCanvas" height="500"></canvas>
+    </div>
+    <div class="constellation-list" id="constellationList"></div>
+    <div class="constellation-info" id="constellationInfo"></div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 5: GALAXIES ==================== -->
+<div class="section" id="sec-galaxies">
+  <div class="card">
+    <h2><span class="mi">blur_on</span> Melkwegstelsel Classificatie</h2>
+    <p style="font:13px var(--font);color:var(--tx2);margin-bottom:16px">
+      Edwin Hubble ontwikkelde in 1926 zijn classificatieschema voor sterrenstelsels, bekend als het Hubble-stemvorkdiagram.
+      Ontdek de verschillende typen hieronder.
+    </p>
+    <div class="tuning-fork">
+      <canvas id="tuningForkCanvas" height="280"></canvas>
+    </div>
+    <div class="galaxy-grid" id="galaxyGrid"></div>
+  </div>
+  <div class="card">
+    <h2><span class="mi">quiz</span> Quiz: Classificeer het Sterrenstelsel!</h2>
+    <div class="quiz-box" id="galaxyQuiz">
+      <p style="font:14px var(--font);color:var(--tx2)">Bekijk het sterrenstelsel en kies het juiste type</p>
+      <img id="quizImg" src="" alt="Sterrenstelsel">
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-result" id="quizResult"></div>
+      <button class="btn btn-purple" onclick="nextQuiz()" style="margin-top:12px"><span class="mi" style="font-size:14px">skip_next</span> Volgende</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 6: SCALE ==================== -->
+<div class="section" id="sec-scale">
+  <div class="card">
+    <h2><span class="mi">straighten</span> Schaal van het Universum</h2>
+    <p style="font:13px var(--font);color:var(--tx2);margin-bottom:12px">
+      Scroll door het universum van het allerkleinste tot het allergrootste. Gebruik de schuifbalk of het scrollwiel.
+    </p>
+    <div class="scale-container" id="scaleContainer">
+      <canvas id="scaleCanvas"></canvas>
+      <div class="scale-hud">
+        <span id="scaleLabel">Schaal: 1 m</span>
+        <span id="scaleExponent">10<sup>0</sup> meter</span>
+      </div>
+    </div>
+    <input type="range" class="scale-slider" id="scaleSlider" min="-35" max="27" step="0.1" value="0" oninput="updateScale(this.value)">
+    <div style="display:flex;justify-content:space-between;font:10px var(--mono);color:var(--tx3);margin-top:4px">
+      <span>Plancklengte (10<sup>-35</sup> m)</span>
+      <span>Waarneembaar universum (10<sup>27</sup> m)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 7: GRAVITATIONAL WAVES ==================== -->
+<div class="section" id="sec-waves">
+  <div class="card">
+    <h2><span class="mi">waves</span> Zwaartekrachtsgolven</h2>
+    <p style="font:13px var(--font);color:var(--tx2);margin-bottom:16px">
+      In 2015 detecteerde LIGO voor het eerst zwaartekrachtsgolven — rimpelingen in de ruimtetijd veroorzaakt door botsende zwarte gaten.
+      Hieronder een visualisatie van de beroemdste detecties.
+    </p>
+    <div class="gw-canvas-wrap">
+      <canvas id="gwCanvas" height="300"></canvas>
+    </div>
+    <canvas id="mergerCanvas" class="merger-canvas" height="300"></canvas>
+    <div class="gw-events" id="gwEvents"></div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 8: SPECTROSCOPY ==================== -->
+<div class="section" id="sec-spectroscopy">
+  <div class="card">
+    <h2><span class="mi">science</span> Spectroscopie Lab</h2>
+    <p style="font:13px var(--font);color:var(--tx2);margin-bottom:16px">
+      Elk element in het universum heeft een unieke spectrale vingerafdruk. Astronomen gebruiken deze lichtpatronen
+      om de samenstelling van sterren, nevels en sterrenstelsels te bepalen — zelfs miljarden lichtjaren ver weg.
+    </p>
+    <h3>Kies een Element</h3>
+    <div class="element-grid" id="elementGrid"></div>
+    <h3>Emissiespectrum</h3>
+    <div class="spectrum-bar" id="spectrumBar"></div>
+    <div id="elementInfo" style="font:12px var(--font);color:var(--tx2);margin-top:8px"></div>
+
+    <div class="redshift-demo">
+      <h3>Roodverschuiving Demonstratie</h3>
+      <p style="font:12px var(--font);color:var(--tx3);margin-bottom:8px">Verschuif het spectrum om roodverschuiving (z > 0) of blauwverschuiving (z < 0) te simuleren</p>
+      <div class="spectrum-bar" id="shiftedSpectrum"></div>
+      <input type="range" id="redshiftSlider" min="-0.5" max="2" step="0.01" value="0" oninput="updateRedshift(this.value)">
+      <div class="redshift-label">
+        <span>Blauwverschuiving (nadert)</span>
+        <span id="redshiftVal">z = 0.00</span>
+        <span>Roodverschuiving (verwijdert)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 9: COSMIC TIMELINE ==================== -->
+<div class="section" id="sec-timeline">
+  <div class="card">
+    <h2><span class="mi">timeline</span> Kosmische Tijdlijn</h2>
+    <p style="font:13px var(--font);color:var(--tx2);margin-bottom:20px">
+      Van de Oerknal tot vandaag — 13,8 miljard jaar kosmische geschiedenis in een overzicht.
+    </p>
+    <div class="timeline-container" id="timelineContainer"></div>
+  </div>
+</div>
+
+</div><!-- .wrap -->
+
+<script>
+// ============================
+// STAR FIELD BACKGROUND
+// ============================
+(function(){
+  const c=document.getElementById('starCanvas'),ctx=c.getContext('2d');
+  let stars=[], W, H;
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;initStars()}
+  function initStars(){
+    stars=[];
+    for(let i=0;i<300;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.3,a:Math.random(),da:(.5+Math.random())*0.005*(Math.random()>.5?1:-1),
+      color:`hsl(${220+Math.random()*60},${10+Math.random()*30}%,${70+Math.random()*30}%)`});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.a+=s.da;
+      if(s.a>1||s.a<.1)s.da*=-1;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color;ctx.globalAlpha=s.a;ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  resize();draw();
+  window.addEventListener('resize',resize);
+})();
+
+// ============================
+// SECTION NAVIGATION
+// ============================
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.snav').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  event.target.closest('.snav').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Lazy-load sections on first view
+  if(id==='apod'&&!window._apodLoaded){window._apodLoaded=true;loadApodToday();loadApodGallery()}
+  if(id==='deepspace'&&!window._dsLoaded){window._dsLoaded=true;searchHubble('pillars of creation')}
+  if(id==='solar'&&!window._solarLoaded){window._solarLoaded=true;loadSolarData()}
+  if(id==='constellations'&&!window._constLoaded){window._constLoaded=true;initConstellations()}
+  if(id==='galaxies'&&!window._galLoaded){window._galLoaded=true;initGalaxies()}
+  if(id==='scale'&&!window._scaleLoaded){window._scaleLoaded=true;initScale()}
+  if(id==='waves'&&!window._wavesLoaded){window._wavesLoaded=true;initGravWaves()}
+  if(id==='spectroscopy'&&!window._specLoaded){window._specLoaded=true;initSpectroscopy()}
+  if(id==='timeline'&&!window._tlLoaded){window._tlLoaded=true;initTimeline()}
+}
+
+// Auto-load first section
+window._apodLoaded=true;
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('monthSelect').value=new Date().getMonth();
+  loadApodToday();loadApodGallery();
+});
+
+// ============================
+// FULLSCREEN VIEWER
+// ============================
+let useHD=false;
+function openFullscreen(url,title){
+  document.getElementById('fsImg').src=url;
+  document.getElementById('fsInfo').textContent=title||'';
+  document.getElementById('fsViewer').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeFullscreen(){
+  document.getElementById('fsViewer').classList.remove('show');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFullscreen()});
+function toggleHD(){useHD=!useHD;document.getElementById('hdToggle').classList.toggle('btn-active',useHD)}
+
+// ============================
+// SECTION 1: APOD
+// ============================
+let currentApod=null;
+async function loadApodToday(){
+  try{
+    const r=await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+    const d=await r.json();
+    currentApod=d;
+    renderApod(d);
+  }catch(e){document.getElementById('apodHero').innerHTML='<div class="error-msg">Kan APOD niet laden. Probeer later opnieuw.</div>'}
+}
+async function loadApodByDate(){
+  const dt=document.getElementById('apodDate').value;
+  if(!dt)return;
+  try{
+    const r=await fetch(`https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=${dt}`);
+    const d=await r.json();
+    currentApod=d;
+    renderApod(d);
+  }catch(e){document.getElementById('apodHero').innerHTML='<div class="error-msg">Geen afbeelding gevonden voor deze datum.</div>'}
+}
+function renderApod(d){
+  const isVideo=d.media_type==='video';
+  const imgUrl=useHD&&d.hdurl?d.hdurl:d.url;
+  const cat=detectCategory(d.title+' '+(d.explanation||''));
+  document.getElementById('apodHero').innerHTML=isVideo?
+    `<div class="apod-hero"><iframe src="${d.url}" style="width:100%;height:500px;border:none;border-radius:var(--r)"></iframe></div>`:
+    `<div class="apod-hero" onclick="openFullscreen('${d.hdurl||d.url}','${(d.title||'').replace(/'/g,"\\'")}')">
+      <img src="${imgUrl}" alt="${d.title}">
+      <div class="apod-overlay"><h2>${d.title}</h2><div class="date">${d.date} ${cat?'<span class="tag" style="margin-left:8px">'+cat+'</span>':''}</div></div>
+    </div>`;
+  document.getElementById('apodExplanation').innerHTML=`<div class="apod-explanation">${d.explanation||''}</div>`;
+}
+function detectCategory(text){
+  const t=text.toLowerCase();
+  if(t.includes('nebula')||t.includes('nevel'))return'Nevel';
+  if(t.includes('galaxy')||t.includes('galax')||t.includes('stelsel'))return'Sterrenstelsel';
+  if(t.includes('planet'))return'Planeet';
+  if(t.includes('moon')||t.includes('maan'))return'Maan';
+  if(t.includes('sun')||t.includes('solar')||t.includes('zon'))return'Zon';
+  if(t.includes('comet')||t.includes('komeet'))return'Komeet';
+  if(t.includes('cluster')||t.includes('hoop'))return'Sterrenhoop';
+  if(t.includes('supernova'))return'Supernova';
+  if(t.includes('aurora')||t.includes('noorderlicht'))return'Aurora';
+  if(t.includes('milky way')||t.includes('melkweg'))return'Melkweg';
+  return '';
+}
+async function loadApodGallery(){
+  try{
+    const r=await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&count=18');
+    const data=await r.json();
+    const el=document.getElementById('apodGallery');
+    el.className='apod-grid';
+    el.innerHTML=data.filter(d=>d.media_type==='image').map(d=>
+      `<div class="apod-thumb" onclick="currentApod=${JSON.stringify(d).replace(/"/g,'&quot;').replace(/'/g,"\\'")};renderApod(JSON.parse(this.getAttribute('data-apod')));window.scrollTo({top:0,behavior:'smooth'})" data-apod='${JSON.stringify(d).replace(/'/g,"&#39;")}'>
+        <img src="${d.url}" alt="${d.title}" loading="lazy">
+        <div class="thumb-info">${d.title}<div class="thumb-date">${d.date}</div></div>
+      </div>`
+    ).join('');
+  }catch(e){document.getElementById('apodGallery').innerHTML='<div class="error-msg">Kan galerij niet laden.</div>'}
+}
+
+// ============================
+// SECTION 2: DEEP SPACE (HubbleSite)
+// ============================
+async function searchHubble(query){
+  const q=query||document.getElementById('hubbleSearch').value;
+  if(!q)return;
+  document.getElementById('hubbleSearch').value=q;
+  document.getElementById('hubbleResults').innerHTML='<div class="loading">Zoeken naar '+q+'...</div>';
+  try{
+    const r=await fetch('https://hubblesite.org/api/v3/images?search='+encodeURIComponent(q)+'&page=all');
+    const data=await r.json();
+    if(!data.length){document.getElementById('hubbleResults').innerHTML='<div class="error-msg">Geen resultaten gevonden voor "'+q+'"</div>';return}
+    document.getElementById('hubbleResults').innerHTML=data.slice(0,12).map(d=>{
+      const imgUrl=`https://hubblesite.org/files/live/sites/hubble/files/home/resource-gallery/images/${String(d.id).padStart(4,'0')}/thumb.jpg`;
+      return `<div class="hubble-card" onclick="openHubbleDetail(${d.id})">
+        <img src="${imgUrl}" alt="${d.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x220/0a0b1e/64748b?text=Hubble+Image'">
+        <div class="hc-info"><h3>${d.name}</h3><p>ID: ${d.id}</p></div>
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('hubbleResults').innerHTML='<div class="error-msg">API niet bereikbaar. Probeer het later opnieuw.</div>'}
+}
+async function openHubbleDetail(id){
+  try{
+    const r=await fetch('https://hubblesite.org/api/v3/image/'+id);
+    const d=await r.json();
+    const img=d.image_files&&d.image_files.length?'https:'+d.image_files[d.image_files.length-1].file_url:'';
+    if(img)openFullscreen(img,d.name);
+  }catch(e){}
+}
+
+// ============================
+// SECTION 3: SOLAR ACTIVITY
+// ============================
+function changeSunWavelength(wl,label,btn){
+  const ext=wl.startsWith('HMI')?wl:'latest_1024_'+wl;
+  document.getElementById('sunImage').src='https://sdo.gsfc.nasa.gov/assets/img/latest/'+ext+'.jpg';
+  document.getElementById('sunLabel').textContent='SDO/AIA '+label;
+  document.querySelectorAll('.sdo-wavelengths .btn').forEach(b=>b.classList.remove('btn-active'));
+  btn.classList.add('btn-active');
+}
+async function loadSolarData(){
+  const end=new Date().toISOString().split('T')[0];
+  const start=new Date(Date.now()-7*86400000).toISOString().split('T')[0];
+  try{
+    // Solar flares
+    const fr=await fetch(`https://api.nasa.gov/DONKI/FLR?startDate=${start}&endDate=${end}&api_key=DEMO_KEY`);
+    const flares=await fr.json();
+    document.getElementById('ssFlares').textContent=Array.isArray(flares)?flares.length:'0';
+    document.getElementById('ssXFlares').textContent=Array.isArray(flares)?flares.filter(f=>f.classType&&f.classType.startsWith('X')).length:'0';
+
+    if(Array.isArray(flares)&&flares.length){
+      const rows=flares.slice(0,10).map(f=>{
+        const cls=f.classType?f.classType[0]:'?';
+        const dt=new Date(f.beginTime);
+        return `<tr><td><span class="flare-class flare-${cls}">${f.classType||'?'}</span></td>
+          <td>${dt.toLocaleDateString('nl-NL',{day:'numeric',month:'short'})}</td>
+          <td>${dt.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})} UTC</td>
+          <td>${f.sourceLocation||'--'}</td></tr>`;
+      }).join('');
+      document.getElementById('flareTable').innerHTML=`<table class="flare-table"><thead><tr><th>Klasse</th><th>Datum</th><th>Tijd</th><th>Locatie</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }else{
+      document.getElementById('flareTable').innerHTML='<p style="color:var(--tx3);font:12px var(--font)">Geen zonnevlammen gedetecteerd deze week.</p>';
+    }
+
+    // CME
+    const cr=await fetch(`https://api.nasa.gov/DONKI/CME?startDate=${start}&endDate=${end}&api_key=DEMO_KEY`);
+    const cme=await cr.json();
+    document.getElementById('ssCME').textContent=Array.isArray(cme)?cme.length:'0';
+
+    // Geomagnetic storms
+    const gr=await fetch(`https://api.nasa.gov/DONKI/GST?startDate=${start}&endDate=${end}&api_key=DEMO_KEY`);
+    const gst=await gr.json();
+    document.getElementById('ssGeoStorm').textContent=Array.isArray(gst)?gst.length:'0';
+  }catch(e){
+    document.getElementById('flareTable').innerHTML='<div class="error-msg">Kan zonnedata niet laden.</div>';
+  }
+}
+
+// ============================
+// SECTION 4: CONSTELLATIONS
+// ============================
+const CONSTELLATIONS=[
+  {name:'Orion',latin:'Orion',symbol:'\u2694\uFE0F',months:[11,0,1,2],
+   stars:[{n:'Betelgeuze',x:.35,y:.2,m:0.42},{n:'Bellatrix',x:.6,y:.22,m:1.64},{n:'Alnitak',x:.42,y:.47,m:1.77},{n:'Alnilam',x:.48,y:.45,m:1.69},{n:'Mintaka',x:.54,y:.43,m:2.23},{n:'Rigel',x:.62,y:.75,m:0.13},{n:'Saiph',x:.36,y:.73,m:2.09}],
+   lines:[[0,1],[0,4],[1,3],[2,3],[3,4],[4,5],[2,6]],
+   myth:'Orion was in de Griekse mythologie een machtige jager, zoon van Poseidon. Hij werd aan de hemel geplaatst na zijn dood. De drie sterren van de Gordelband zijn wereldwijd herkenbaar.'},
+  {name:'Grote Beer',latin:'Ursa Major',symbol:'\uD83D\uDC3B',months:[0,1,2,3,4,5],
+   stars:[{n:'Dubhe',x:.3,y:.25,m:1.79},{n:'Merak',x:.35,y:.4,m:2.37},{n:'Phecda',x:.5,y:.45,m:2.44},{n:'Megrez',x:.52,y:.32,m:3.31},{n:'Alioth',x:.62,y:.28,m:1.77},{n:'Mizar',x:.7,y:.25,m:2.27},{n:'Alkaid',x:.8,y:.2,m:1.86}],
+   lines:[[0,1],[1,2],[2,3],[3,0],[3,4],[4,5],[5,6]],
+   myth:'De Grote Beer, ook bekend als de Steelpan, is een van de bekendste sterrenbeelden. In de mythologie is zij de nimf Callisto, door Zeus aan de hemel geplaatst.'},
+  {name:'Schorpioen',latin:'Scorpius',symbol:'\uD83E\uDD82',months:[5,6,7],
+   stars:[{n:'Antares',x:.5,y:.4,m:1.09},{n:'Graffias',x:.35,y:.15,m:2.62},{n:'Dschubba',x:.42,y:.2,m:2.32},{n:'Pi Sco',x:.48,y:.25,m:2.89},{n:'Shaula',x:.75,y:.8,m:1.63},{n:'Lesath',x:.73,y:.78,m:2.69},{n:'Sargas',x:.65,y:.7,m:1.87},{n:'Epsilon Sco',x:.55,y:.55,m:2.29}],
+   lines:[[1,2],[2,3],[3,0],[0,7],[7,6],[6,5],[5,4]],
+   myth:'De Schorpioen doodde de jager Orion met zijn gif. Daarom staan ze aan tegenovergestelde kanten van de hemel en zijn ze nooit tegelijk zichtbaar.'},
+  {name:'Leeuw',latin:'Leo',symbol:'\uD83E\uDD81',months:[2,3,4],
+   stars:[{n:'Regulus',x:.35,y:.65,m:1.35},{n:'Denebola',x:.8,y:.45,m:2.14},{n:'Algieba',x:.4,y:.35,m:2.08},{n:'Zosma',x:.65,y:.4,m:2.56},{n:'Chertan',x:.6,y:.5,m:3.34},{n:'Eta Leo',x:.3,y:.35,m:3.52},{n:'Adhafera',x:.38,y:.28,m:3.44}],
+   lines:[[0,2],[2,6],[6,5],[2,3],[3,1],[3,4],[4,0]],
+   myth:'De Leeuw vertegenwoordigt de Nemeïsche leeuw, verslagen door Hercules als eerste van zijn twaalf werken. Zijn huid was ondoordringbaar voor wapens.'},
+  {name:'Zwaan',latin:'Cygnus',symbol:'\uD83E\uDDA2',months:[6,7,8,9],
+   stars:[{n:'Deneb',x:.5,y:.1,m:1.25},{n:'Sadr',x:.5,y:.35,m:2.23},{n:'Gienah',x:.35,y:.55,m:2.48},{n:'Albireo',x:.5,y:.8,m:3.08},{n:'Epsilon Cyg',x:.65,y:.5,m:2.46}],
+   lines:[[0,1],[1,3],[1,2],[1,4]],
+   myth:'De Zwaan vertegenwoordigt Zeus vermomd als zwaan, of Orpheus die na zijn dood aan de hemel werd geplaatst naast zijn lier (Lyra).'},
+  {name:'Cassiopeia',latin:'Cassiopeia',symbol:'\uD83D\uDC51',months:[8,9,10,11,0],
+   stars:[{n:'Schedar',x:.3,y:.5,m:2.23},{n:'Caph',x:.2,y:.3,m:2.27},{n:'Gamma Cas',x:.4,y:.25,m:2.47},{n:'Ruchbah',x:.55,y:.35,m:2.68},{n:'Segin',x:.65,y:.55,m:3.37}],
+   lines:[[1,0],[0,2],[2,3],[3,4]],
+   myth:'Cassiopeia was een ijdele koningin die beweerde mooier te zijn dan de zeenimfen. Als straf werd ze aan de hemel vastgebonden aan haar troon.'},
+  {name:'Tweelingen',latin:'Gemini',symbol:'\u264A',months:[11,0,1,2,3],
+   stars:[{n:'Castor',x:.45,y:.1,m:1.58},{n:'Pollux',x:.55,y:.15,m:1.14},{n:'Alhena',x:.6,y:.7,m:1.93},{n:'Tejat',x:.3,y:.55,m:2.88},{n:'Mebsuta',x:.38,y:.35,m:3.06},{n:'Wasat',x:.52,y:.45,m:3.53}],
+   lines:[[0,4],[4,3],[0,5],[5,1],[1,2],[5,2]],
+   myth:'De tweelingbroers Castor en Pollux werden door Zeus aan de hemel geplaatst. Pollux was onsterfelijk, Castor niet — Zeus plaatste hen samen zodat ze nooit gescheiden zouden worden.'},
+  {name:'Stier',latin:'Taurus',symbol:'\u2649',months:[10,11,0,1],
+   stars:[{n:'Aldebaran',x:.55,y:.45,m:0.85},{n:'Elnath',x:.8,y:.2,m:1.65},{n:'Alcyone',x:.35,y:.25,m:2.87},{n:'Tianguan',x:.75,y:.25,m:3.00},{n:'Lambda Tau',x:.5,y:.35,m:3.47}],
+   lines:[[0,4],[4,2],[0,1],[0,3]],
+   myth:'De Stier vertegenwoordigt Zeus vermomd als stier om Europa te ontvoeren. De Pleiaden sterrenhoop (Zeven Zusters) bevindt zich in dit sterrenbeeld.'}
+];
+
+function initConstellations(){
+  const list=document.getElementById('constellationList');
+  list.innerHTML=CONSTELLATIONS.map((c,i)=>
+    `<div class="constellation-item" onclick="selectConstellation(${i})">
+      <div class="c-symbol">${c.symbol}</div>
+      <div><div class="c-name">${c.name}</div><div class="c-latin">${c.latin}</div></div>
+    </div>`).join('');
+  drawConstellations();
+}
+let selectedConst=-1;
+function selectConstellation(idx){
+  selectedConst=idx;
+  document.querySelectorAll('.constellation-item').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  const c=CONSTELLATIONS[idx];
+  const info=document.getElementById('constellationInfo');
+  info.className='constellation-info show';
+  info.innerHTML=`<h3>${c.symbol} ${c.name} <span style="font:12px var(--mono);color:var(--tx3);margin-left:8px">(${c.latin})</span></h3>
+    <div style="font:11px var(--mono);color:var(--tx3);margin-bottom:4px">Zichtbaar: ${c.months.map(m=>['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][m]).join(', ')}</div>
+    <div style="font:11px var(--mono);color:var(--tx3)">Sterren: ${c.stars.map(s=>s.n).join(', ')}</div>
+    <div class="myth">${c.myth}</div>`;
+  drawConstellations();
+}
+
+function drawConstellations(){
+  const canvas=document.getElementById('constellationCanvas');
+  const W=canvas.parentElement.clientWidth;
+  canvas.width=W;
+  const H=canvas.height=500;
+  const ctx=canvas.getContext('2d');
+  const showL=document.getElementById('showLines').checked;
+  const showN=document.getElementById('showNames').checked;
+  const showSN=document.getElementById('showStarNames').checked;
+  const showG=document.getElementById('showGrid').checked;
+  const month=parseInt(document.getElementById('monthSelect').value);
+
+  // Background
+  ctx.fillStyle='#020208';ctx.fillRect(0,0,W,H);
+
+  // Grid
+  if(showG){
+    ctx.strokeStyle='rgba(148,163,184,.06)';ctx.lineWidth=.5;
+    for(let i=0;i<=W;i+=50){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke()}
+    for(let i=0;i<=H;i+=50){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke()}
+  }
+
+  // Random background stars
+  for(let i=0;i<200;i++){
+    ctx.beginPath();
+    ctx.arc(Math.random()*W,Math.random()*H,Math.random()*.8+.2,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${.1+Math.random()*.2})`;ctx.fill();
+  }
+
+  // Which constellations are visible this month
+  const visible=CONSTELLATIONS.filter(c=>c.months.includes(month));
+  const toShow=selectedConst>=0?[CONSTELLATIONS[selectedConst]]:visible;
+
+  // Layout constellations in grid
+  const cols=Math.ceil(Math.sqrt(toShow.length));
+  const cellW=W/cols;
+  const rows=Math.ceil(toShow.length/cols);
+  const cellH=H/rows;
+
+  toShow.forEach((c,idx)=>{
+    const col=idx%cols, row=Math.floor(idx/cols);
+    const offX=col*cellW+cellW*.1;
+    const offY=row*cellH+cellH*.1;
+    const sW=cellW*.8, sH=cellH*.8;
+
+    // Lines
+    if(showL){
+      ctx.strokeStyle='rgba(168,85,247,.35)';ctx.lineWidth=1;
+      c.lines.forEach(([a,b])=>{
+        const sa=c.stars[a],sb=c.stars[b];
+        ctx.beginPath();
+        ctx.moveTo(offX+sa.x*sW,offY+sa.y*sH);
+        ctx.lineTo(offX+sb.x*sW,offY+sb.y*sH);
+        ctx.stroke();
+      });
+    }
+
+    // Stars
+    c.stars.forEach(s=>{
+      const x=offX+s.x*sW, y=offY+s.y*sH;
+      const r=Math.max(2,(4-s.m)*1.5);
+      const grad=ctx.createRadialGradient(x,y,0,x,y,r*3);
+      grad.addColorStop(0,'rgba(255,255,255,.9)');
+      grad.addColorStop(.4,'rgba(200,200,255,.4)');
+      grad.addColorStop(1,'transparent');
+      ctx.fillStyle=grad;
+      ctx.beginPath();ctx.arc(x,y,r*3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+
+      if(showSN){
+        ctx.fillStyle='rgba(148,163,184,.6)';ctx.font='9px "Space Mono"';
+        ctx.fillText(s.n,x+r+4,y+3);
+      }
+    });
+
+    // Constellation name
+    if(showN){
+      ctx.fillStyle='rgba(168,85,247,.7)';ctx.font='bold 13px "DM Sans"';ctx.textAlign='center';
+      ctx.fillText(c.name,offX+sW/2,offY-5);ctx.textAlign='left';
+    }
+  });
+}
+document.getElementById('showLines').onchange=drawConstellations;
+document.getElementById('showNames').onchange=drawConstellations;
+document.getElementById('showStarNames').onchange=drawConstellations;
+document.getElementById('showGrid').onchange=drawConstellations;
+
+// ============================
+// SECTION 5: GALAXIES
+// ============================
+const GALAXIES=[
+  {type:'Spiraal',sub:'Sa/Sb/Sc',hubble:'S',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/M101_hires_STScI-PRC2006-10a.jpg/600px-M101_hires_STScI-PRC2006-10a.jpg',
+   name:'M101 — Windmolenstelsel',desc:'Spiraalarmen draaien uit vanuit een centraal bulge. Bevatten veel gas, stof en jonge blauwe sterren.'},
+  {type:'Balkspiraal',sub:'SBa/SBb/SBc',hubble:'SB',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/NGC_1300_HST.jpg/600px-NGC_1300_HST.jpg',
+   name:'NGC 1300',desc:'Zoals spiraalen maar met een balk van sterren door het centrum. Onze Melkweg is ook een balkspiraal.'},
+  {type:'Elliptisch',sub:'E0-E7',hubble:'E',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/M87_jet.jpg/600px-M87_jet.jpg',
+   name:'M87 — Virgo A',desc:'Bolvormig tot ellipsvormig. Bevatten vooral oude rode sterren met weinig gas of stof. Geen actieve stervorming.'},
+  {type:'Lenticulair',sub:'S0',hubble:'S0',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/NGC_2787_Hubble_WikiSky.jpg/600px-NGC_2787_Hubble_WikiSky.jpg',
+   name:'NGC 2787',desc:'Overgangstype tussen spiraal en elliptisch. Hebben een schijf maar geen duidelijke spiraalarmen. Weinig stervorming.'},
+  {type:'Onregelmatig',sub:'Irr',hubble:'Irr',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Large.mc.arp.750pix.jpg/600px-Large.mc.arp.750pix.jpg',
+   name:'Grote Magelhaense Wolk',desc:'Geen duidelijke structuur. Vaak het resultaat van zwaartekrachtsinteracties. Veel actieve stervorming.'}
+];
+
+const QUIZ_GALAXIES=[
+  {img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/ESO-VLT-Laser-phot-33a-07.jpg/600px-ESO-VLT-Laser-phot-33a-07.jpg',answer:'Spiraal',name:'Melkwegcentrum'},
+  {img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/NGC_1300_HST.jpg/600px-NGC_1300_HST.jpg',answer:'Balkspiraal',name:'NGC 1300'},
+  {img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/M87_jet.jpg/600px-M87_jet.jpg',answer:'Elliptisch',name:'M87'},
+  {img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Large.mc.arp.750pix.jpg/600px-Large.mc.arp.750pix.jpg',answer:'Onregelmatig',name:'Grote Magelhaense Wolk'},
+  {img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/M101_hires_STScI-PRC2006-10a.jpg/600px-M101_hires_STScI-PRC2006-10a.jpg',answer:'Spiraal',name:'M101'}
+];
+let quizIdx=0;
+
+function initGalaxies(){
+  document.getElementById('galaxyGrid').innerHTML=GALAXIES.map(g=>
+    `<div class="galaxy-card" onclick="openFullscreen('${g.img}','${g.name}')">
+      <img src="${g.img}" alt="${g.name}" loading="lazy">
+      <div class="gc-info"><h3>${g.name}</h3><p><span class="tag">${g.type}</span> <span class="tag">${g.sub}</span></p><p style="margin-top:6px">${g.desc}</p></div>
+    </div>`).join('');
+  drawTuningFork();
+  loadQuiz();
+}
+
+function drawTuningFork(){
+  const canvas=document.getElementById('tuningForkCanvas');
+  const W=canvas.parentElement.clientWidth;
+  canvas.width=W;
+  const H=280;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#020208';ctx.fillRect(0,0,W,H);
+
+  // Fork structure
+  ctx.strokeStyle='rgba(168,85,247,.4)';ctx.lineWidth=2;
+  // Handle
+  const hx=60,hy=H/2;
+  ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(W*.35,hy);ctx.stroke();
+  // Upper prong (normal spirals)
+  ctx.beginPath();ctx.moveTo(W*.35,hy);ctx.quadraticCurveTo(W*.5,hy-80,W*.9,hy-80);ctx.stroke();
+  // Lower prong (barred spirals)
+  ctx.beginPath();ctx.moveTo(W*.35,hy);ctx.quadraticCurveTo(W*.5,hy+80,W*.9,hy+80);ctx.stroke();
+
+  // Labels
+  ctx.font='bold 12px "DM Sans"';ctx.fillStyle='rgba(168,85,247,.8)';
+  ctx.fillText('E0',hx-10,hy-20);
+  ctx.fillText('E7',W*.25,hy-20);
+  ctx.fillText('S0',W*.37,hy-20);
+  ctx.fillText('Sa',W*.5,hy-100);ctx.fillText('Sb',W*.65,hy-100);ctx.fillText('Sc',W*.8,hy-100);
+  ctx.fillText('SBa',W*.5,hy+110);ctx.fillText('SBb',W*.65,hy+110);ctx.fillText('SBc',W*.8,hy+110);
+
+  // Draw ellipses for E types
+  const ellipses=[[hx,hy,14,14],[hx+50,hy,16,13],[W*.18,hy,18,11],[W*.27,hy,19,10]];
+  ellipses.forEach(([x,y,rx,ry])=>{
+    ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+    ctx.fillStyle='rgba(251,191,36,.15)';ctx.fill();
+    ctx.strokeStyle='rgba(251,191,36,.4)';ctx.lineWidth=1;ctx.stroke();
+  });
+
+  // Spiral representations
+  ctx.font='20px serif';ctx.textAlign='center';
+  ctx.fillStyle='rgba(168,85,247,.5)';
+  ctx.fillText('\uD83C\uDF00',W*.55,hy-70);ctx.fillText('\uD83C\uDF00',W*.7,hy-65);ctx.fillText('\uD83C\uDF00',W*.85,hy-60);
+  ctx.fillText('\uD83C\uDF00',W*.55,hy+85);ctx.fillText('\uD83C\uDF00',W*.7,hy+90);ctx.fillText('\uD83C\uDF00',W*.85,hy+95);
+  ctx.textAlign='left';
+
+  ctx.font='bold 14px "DM Sans"';ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.fillText('Hubble Stemvorkdiagram',W/2-90,25);
+}
+
+function loadQuiz(){
+  const q=QUIZ_GALAXIES[quizIdx%QUIZ_GALAXIES.length];
+  document.getElementById('quizImg').src=q.img;
+  document.getElementById('quizResult').innerHTML='';
+  document.getElementById('quizResult').className='quiz-result';
+  const types=['Spiraal','Balkspiraal','Elliptisch','Lenticulair','Onregelmatig'];
+  document.getElementById('quizOptions').innerHTML=types.map(t=>
+    `<button class="btn btn-purple" onclick="checkQuiz('${t}')">${t}</button>`).join('');
+}
+function checkQuiz(ans){
+  const q=QUIZ_GALAXIES[quizIdx%QUIZ_GALAXIES.length];
+  const res=document.getElementById('quizResult');
+  if(ans===q.answer){res.className='quiz-result correct';res.textContent=`Correct! Dit is ${q.name} — een ${q.answer.toLowerCase()} sterrenstelsel.`}
+  else{res.className='quiz-result wrong';res.textContent=`Helaas! Dit is ${q.name} — een ${q.answer.toLowerCase()} sterrenstelsel.`}
+}
+function nextQuiz(){quizIdx++;loadQuiz()}
+
+// ============================
+// SECTION 6: SCALE OF THE UNIVERSE
+// ============================
+const SCALE_OBJECTS=[
+  {exp:-35,name:'Plancklengte',size:'1.6\u00d710\u207b\u00b3\u2075 m',desc:'Kleinste betekenisvolle lengte in de fysica',color:'#a855f7'},
+  {exp:-15,name:'Proton',size:'0.87 fm',desc:'Bouwsteen van atoomkernen',color:'#818cf8'},
+  {exp:-10,name:'Waterstofatoom',size:'53 pm',desc:'Het eenvoudigste en meest voorkomende element',color:'#3b82f6'},
+  {exp:-9,name:'DNA-helix',size:'2 nm breed',desc:'Drager van genetische informatie',color:'#06b6d4'},
+  {exp:-7,name:'Virus',size:'100 nm',desc:'Op de grens van levend en niet-levend',color:'#22c55e'},
+  {exp:-5,name:'Rode bloedcel',size:'7 \u03bcm',desc:'Transporteert zuurstof door het lichaam',color:'#ef4444'},
+  {exp:-3,name:'Zandkorrel',size:'1 mm',desc:'Klein maar zichtbaar met het blote oog',color:'#fbbf24'},
+  {exp:0,name:'Mens',size:'1.7 m',desc:'Onze schaal van het dagelijks leven',color:'#f97316'},
+  {exp:3,name:'Mount Everest',size:'8.8 km',desc:'Hoogste berg op Aarde',color:'#78716c'},
+  {exp:7,name:'Aarde',size:'12.742 km',desc:'Onze thuisplaneet',color:'#3b82f6'},
+  {exp:8,name:'Jupiter',size:'139.820 km',desc:'Grootste planeet in ons zonnestelsel',color:'#f59e0b'},
+  {exp:9,name:'Zon',size:'1.39 miljoen km',desc:'Onze ster, type G2V hoofdreeksster',color:'#fbbf24'},
+  {exp:11,name:'Aarde-Zon afstand',size:'1 AE = 150M km',desc:'Gemiddelde afstand Aarde-Zon',color:'#06b6d4'},
+  {exp:13,name:'Zonnestelsel',size:'~100 AE',desc:'Tot voorbij de Kuipergordel',color:'#a855f7'},
+  {exp:16,name:'Lichtjaar',size:'9.46\u00d710\u00b9\u00b2 km',desc:'Afstand die licht aflegt in een jaar',color:'#818cf8'},
+  {exp:17,name:'Proxima Centauri',size:'4.24 lj',desc:'Dichtstbijzijnde ster buiten ons zonnestelsel',color:'#ef4444'},
+  {exp:20,name:'Melkweg',size:'100.000 lj',desc:'Ons eigen balkspiraal-sterrenstelsel met 200-400 miljard sterren',color:'#d946ef'},
+  {exp:22,name:'Lokale Groep',size:'10 miljoen lj',desc:'Onze groep van 80+ sterrenstelsels',color:'#f97316'},
+  {exp:24,name:'Laniakea Supercluster',size:'520 miljoen lj',desc:'Onze kosmische buurt van 100.000 sterrenstelsels',color:'#22c55e'},
+  {exp:27,name:'Waarneembaar Universum',size:'93 miljard lj',desc:'Alles wat we ooit kunnen waarnemen',color:'#fbbf24'}
+];
+
+function initScale(){
+  const canvas=document.getElementById('scaleCanvas');
+  const cont=document.getElementById('scaleContainer');
+  canvas.width=cont.clientWidth;
+  canvas.height=cont.clientHeight;
+  updateScale(0);
+  cont.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const slider=document.getElementById('scaleSlider');
+    slider.value=parseFloat(slider.value)+(e.deltaY>0?.5:-.5);
+    slider.value=Math.max(-35,Math.min(27,slider.value));
+    updateScale(slider.value);
+  },{passive:false});
+}
+
+function updateScale(val){
+  val=parseFloat(val);
+  const canvas=document.getElementById('scaleCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+
+  // Background gradient based on scale
+  const t=(val+35)/62; // 0 to 1
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,`rgba(${5+t*10},${5+t*5},${16+t*30},.98)`);
+  bg.addColorStop(1,`rgba(${2+t*8},${2+t*4},${8+t*20},.98)`);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // Find nearest objects
+  const nearby=SCALE_OBJECTS.filter(o=>Math.abs(o.exp-val)<6).sort((a,b)=>Math.abs(a.exp-val)-Math.abs(b.exp-val));
+
+  nearby.forEach(obj=>{
+    const dist=obj.exp-val;
+    const y=H/2+dist*40;
+    if(y<-50||y>H+50)return;
+    const alpha=Math.max(0,1-Math.abs(dist)/5);
+    const scale=Math.max(.3,1-Math.abs(dist)/8);
+
+    // Circle
+    const r=20+scale*30;
+    const grad=ctx.createRadialGradient(W/2,y,0,W/2,y,r);
+    grad.addColorStop(0,obj.color+'cc');
+    grad.addColorStop(.6,obj.color+'44');
+    grad.addColorStop(1,'transparent');
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(W/2,y,r,0,Math.PI*2);ctx.fill();
+
+    // Core dot
+    ctx.fillStyle=obj.color;
+    ctx.beginPath();ctx.arc(W/2,y,r*.3,0,Math.PI*2);ctx.fill();
+
+    // Label
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle='#fff';ctx.font=`bold ${12+scale*6}px "DM Sans"`;ctx.textAlign='right';
+    ctx.fillText(obj.name,W/2-r-16,y+4);
+    ctx.fillStyle=obj.color;ctx.font=`${10+scale*3}px "Space Mono"`;
+    ctx.fillText(obj.size,W/2-r-16,y+20);
+
+    // Description
+    if(Math.abs(dist)<2){
+      ctx.fillStyle='rgba(148,163,184,.6)';ctx.font='11px "DM Sans"';ctx.textAlign='left';
+      ctx.fillText(obj.desc,W/2+r+16,y+4);
+    }
+    ctx.textAlign='left';
+    ctx.globalAlpha=1;
+  });
+
+  // Scale indicator
+  const lbl=document.getElementById('scaleLabel');
+  const exp=document.getElementById('scaleExponent');
+  const v=Math.round(val*10)/10;
+  lbl.textContent=`Schaal: 10^${v} meter`;
+  exp.innerHTML=`10<sup>${v}</sup> meter`;
+}
+
+// ============================
+// SECTION 7: GRAVITATIONAL WAVES
+// ============================
+const GW_EVENTS=[
+  {name:'GW150914',date:'14 sep 2015',m1:36,m2:29,mf:62,dist:440,freq:35,desc:'De allereerste detectie van zwaartekrachtsgolven. Twee zwarte gaten fuseerden tot een enkel zwart gat, waarbij 3 zonsmassa\'s aan energie werden uitgestraald als zwaartekrachtsgolven.'},
+  {name:'GW170817',date:'17 aug 2017',m1:1.46,m2:1.27,mf:2.73,dist:40,freq:25,desc:'Eerste detectie van een neutronensterbotsing. Dit was ook de eerste keer dat zwaartekrachtsgolven EN licht van dezelfde bron werden waargenomen.'},
+  {name:'GW190521',date:'21 mei 2019',m1:85,m2:66,mf:142,dist:5300,freq:60,desc:'De zwaarste zwarte-gatfusie ooit gedetecteerd. Het resulterende zwart gat van 142 zonsmassa\'s is het eerste bewijs voor een "middelzwaar" zwart gat.'},
+  {name:'GW190814',date:'14 aug 2019',m1:23,m2:2.6,mf:25,dist:800,freq:30,desc:'Een mysterieus compact object van 2.6 zonsmassa\'s — te zwaar voor een neutronenster, te licht voor een typisch zwart gat.'},
+  {name:'GW200115',date:'15 jan 2020',m1:5.7,m2:1.5,mf:7,dist:300,freq:28,desc:'Een zwart gat dat een neutronenster opslokt. Eerste definitieve detectie van dit type botsing.'}
+];
+let selectedGW=0;
+
+function initGravWaves(){
+  const el=document.getElementById('gwEvents');
+  el.innerHTML=GW_EVENTS.map((e,i)=>
+    `<div class="gw-event${i===0?' selected':''}" onclick="selectGW(${i})">
+      <h3>${e.name}</h3>
+      <div class="gw-detail">${e.date} | ${e.dist} Mpc afstand</div>
+      <div class="gw-detail">Massa: ${e.m1} + ${e.m2} \u2192 ${e.mf} M\u2609</div>
+      <div class="gw-desc">${e.desc}</div>
+    </div>`).join('');
+  drawChirp();
+  animateMerger();
+}
+function selectGW(idx){
+  selectedGW=idx;
+  document.querySelectorAll('.gw-event').forEach((el,i)=>el.classList.toggle('selected',i===idx));
+  drawChirp();
+}
+
+function drawChirp(){
+  const canvas=document.getElementById('gwCanvas');
+  canvas.width=canvas.parentElement.clientWidth;
+  const W=canvas.width,H=300;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#020208';ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(148,163,184,.06)';ctx.lineWidth=.5;
+  for(let i=0;i<W;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,H);ctx.stroke()}
+  for(let i=0;i<H;i+=30){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W,i);ctx.stroke()}
+
+  const ev=GW_EVENTS[selectedGW];
+  const mid=H/2;
+
+  // Chirp signal
+  ctx.beginPath();ctx.moveTo(0,mid);
+  ctx.strokeStyle='#06b6d4';ctx.lineWidth=2;
+  for(let x=0;x<W;x++){
+    const t=x/W;
+    const freq=ev.freq*(1+t*t*20);
+    const amp=Math.min(mid*.8,t*t*t*mid*3);
+    const y=mid+Math.sin(t*freq*.3)*amp;
+    ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Ringdown
+  ctx.beginPath();
+  ctx.strokeStyle='rgba(6,182,212,.3)';
+  for(let x=W*.85;x<W;x++){
+    const t=(x-W*.85)/(W*.15);
+    const amp=mid*.6*Math.exp(-t*5);
+    const y=mid+Math.sin(t*40)*amp;
+    ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle='rgba(6,182,212,.7)';ctx.font='bold 13px "DM Sans"';
+  ctx.fillText(ev.name+' — Chirp Signaal',12,25);
+  ctx.fillStyle='rgba(148,163,184,.5)';ctx.font='10px "Space Mono"';
+  ctx.fillText('Inspiral',W*.2,H-12);
+  ctx.fillText('Fusie',W*.75,H-12);
+  ctx.fillText('Ringdown',W*.9,H-12);
+  ctx.fillText(`${ev.m1} + ${ev.m2} M\u2609`,12,H-12);
+}
+
+function animateMerger(){
+  const canvas=document.getElementById('mergerCanvas');
+  canvas.width=canvas.parentElement.clientWidth;
+  const W=canvas.width,H=300;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  let t=0;
+
+  function frame(){
+    t+=.008;if(t>1)t=0;
+    ctx.fillStyle='rgba(2,2,8,.15)';ctx.fillRect(0,0,W,H);
+
+    const cx=W/2,cy=H/2;
+    const separation=Math.max(5,(1-t*t)*100);
+
+    // Spacetime ripples
+    for(let i=0;i<6;i++){
+      const r=20+i*30+t*60;
+      const alpha=Math.max(0,.3-i*.05)*Math.min(1,t*3);
+      ctx.beginPath();ctx.ellipse(cx,cy,r,r*.6,0,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(6,182,212,${alpha})`;ctx.lineWidth=1;ctx.stroke();
+    }
+
+    // Black holes
+    const angle=t*Math.PI*8;
+    const x1=cx+Math.cos(angle)*separation;
+    const y1=cy+Math.sin(angle)*separation*.6;
+    const x2=cx+Math.cos(angle+Math.PI)*separation;
+    const y2=cy+Math.sin(angle+Math.PI)*separation*.6;
+
+    const r1=t>.9?18:12;
+    const r2=t>.9?18:10;
+
+    [[[x1,y1,r1,'#a855f7'],[x2,y2,r2,'#3b82f6']]].forEach(pair=>{
+      pair.forEach(([x,y,r,col])=>{
+        const g=ctx.createRadialGradient(x,y,0,x,y,r*3);
+        g.addColorStop(0,col+'66');g.addColorStop(.5,col+'22');g.addColorStop(1,'transparent');
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#000';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=col+'88';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+      });
+    });
+
+    // Label
+    ctx.fillStyle='rgba(148,163,184,.4)';ctx.font='10px "Space Mono"';
+    ctx.fillText('Zwarte-gatfusie simulatie',12,H-12);
+
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ============================
+// SECTION 8: SPECTROSCOPY
+// ============================
+const ELEMENTS={
+  'H':{name:'Waterstof',color:'#ef4444',lines:[410,434,486,656],info:'Het eenvoudigste element. De Balmer-serie (zichtbare lijnen) is cruciaal voor het classificeren van sterren. Waterstof maakt 75% uit van alle baryonische materie.'},
+  'He':{name:'Helium',color:'#fbbf24',lines:[388,447,471,502,587,668],info:'Ontdekt in het zonnespectrum voordat het op Aarde werd gevonden. De naam komt van Helios (Griekse zonnegod). Tweede meest voorkomende element in het universum.'},
+  'Na':{name:'Natrium',color:'#f97316',lines:[498,515,568,589,590,616],info:'De beroemde natrium-D dubbellijnen bij 589 nm geven straatverlichting hun oranje kleur. Komt voor in sterren en interstellaire gaswolken.'},
+  'Fe':{name:'IJzer',color:'#94a3b8',lines:[382,404,427,438,466,489,496,517,527,533,561],info:'IJzer heeft het meest complexe spectrum met honderden lijnen. Het is het laatste element dat door kernfusie in sterren wordt geproduceerd.'},
+  'Ca':{name:'Calcium',color:'#22c55e',lines:[393,397,422,443,445,527,558,610,612,616],info:'De H- en K-lijnen van calcium (393 en 397 nm) zijn de sterkste absorptielijnen in het zonlicht. Essentieel voor het classificeren van stertypen.'},
+  'O':{name:'Zuurstof',color:'#3b82f6',lines:[395,407,437,441,533,544,616,645],info:'Zuurstof geeft nevels hun karakteristieke groene kleur door de verboden [OIII] lijnen. Het is het derde meest voorkomende element in het universum.'},
+  'Ne':{name:'Neon',color:'#ef4444',lines:[540,585,588,603,607,616,621,626,633,640,650,660],info:'Verantwoordelijk voor het rode licht in neonreclame. In de astronomie helpt neon bij het bepalen van temperaturen in sterren en nevels.'},
+  'Mg':{name:'Magnesium',color:'#a855f7',lines:[383,470,516,517,518,552,571],info:'De Mg-triplet rond 517 nm is een belangrijke indicator voor stertemperatuur en zwaartekracht. Veel voorkomend in koele sterren.'}
+};
+let selectedElement='H';
+
+function initSpectroscopy(){
+  const grid=document.getElementById('elementGrid');
+  grid.innerHTML=Object.entries(ELEMENTS).map(([sym,el])=>
+    `<div class="element-btn${sym==='H'?' selected':''}" onclick="selectElement('${sym}',this)">
+      <span class="symbol" style="color:${el.color}">${sym}</span>
+      <span class="el-name">${el.name}</span>
+    </div>`).join('');
+  renderSpectrum();
+  renderShiftedSpectrum(0);
+}
+function selectElement(sym,btn){
+  selectedElement=sym;
+  document.querySelectorAll('.element-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  renderSpectrum();
+  renderShiftedSpectrum(parseFloat(document.getElementById('redshiftSlider').value));
+}
+function renderSpectrum(){
+  const el=ELEMENTS[selectedElement];
+  const bar=document.getElementById('spectrumBar');
+  bar.innerHTML=el.lines.map(nm=>{
+    const pos=((nm-380)/(700-380))*100;
+    return `<div class="spectrum-line" style="left:${pos}%;background:${nmToColor(nm)};box-shadow:0 0 6px ${nmToColor(nm)}" data-nm="${nm} nm"></div>`;
+  }).join('');
+  document.getElementById('elementInfo').innerHTML=`<strong style="color:${el.color}">${el.name} (${selectedElement})</strong> — ${el.info}`;
+}
+function nmToColor(nm){
+  let r=0,g=0,b=0;
+  if(nm>=380&&nm<440){r=(440-nm)/(440-380);b=1}
+  else if(nm>=440&&nm<490){g=(nm-440)/(490-440);b=1}
+  else if(nm>=490&&nm<510){g=1;b=(510-nm)/(510-490)}
+  else if(nm>=510&&nm<580){r=(nm-510)/(580-510);g=1}
+  else if(nm>=580&&nm<645){r=1;g=(645-nm)/(645-580)}
+  else if(nm>=645&&nm<=700){r=1}
+  return `rgb(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)})`;
+}
+
+function updateRedshift(z){
+  z=parseFloat(z);
+  document.getElementById('redshiftVal').textContent=`z = ${z.toFixed(2)}`;
+  renderShiftedSpectrum(z);
+}
+function renderShiftedSpectrum(z){
+  const el=ELEMENTS[selectedElement];
+  const bar=document.getElementById('shiftedSpectrum');
+  bar.innerHTML=el.lines.map(nm=>{
+    const shifted=nm*(1+z);
+    const pos=((shifted-380)/(700-380))*100;
+    if(pos<0||pos>100)return '';
+    return `<div class="spectrum-line" style="left:${pos}%;background:${nmToColor(shifted)};box-shadow:0 0 6px ${nmToColor(shifted)}" data-nm="${Math.round(shifted)} nm"></div>`;
+  }).join('');
+}
+
+// ============================
+// SECTION 9: COSMIC TIMELINE
+// ============================
+function initTimeline(){
+  const events=[
+    {time:'0 — Oerknal',ago:'13,8 miljard jaar',temp:'10\u00b3\u00b2 K',icon:'\uD83D\uDCA5',title:'De Oerknal',desc:'Alle materie, energie, ruimte en tijd ontstaan vanuit een oneindig dicht en heet punt — een singulariteit. Het universum begint zich uit te zetten.',major:true},
+    {time:'10\u207b\u00b3\u00b6 seconde',ago:'13,8 miljard jaar',temp:'10\u00b2\u2078 K',icon:'\u26A1',title:'Inflatie',desc:'Het universum ondergaat een exponentieel snelle uitbreiding. In een fractie van een seconde groeit het van kleiner dan een atoom tot groter dan het waarneembare universum.',major:true},
+    {time:'3 minuten',ago:'13,8 miljard jaar',temp:'10\u2079 K',icon:'\u2699\uFE0F',title:'Nucleosynthese',desc:'De eerste atoomkernen vormen: waterstof, helium en sporen lithium. De chemische samenstelling van het universum wordt vastgelegd.'},
+    {time:'380.000 jaar',ago:'13,799 miljard jaar',temp:'3.000 K',icon:'\uD83D\uDCA1',title:'Eerste Licht — Recombinatie',desc:'Elektronen binden zich aan kernen en vormen neutrale atomen. Het universum wordt transparant. Dit licht zien we nu als de kosmische achtergrondstraling (CMB).',major:true},
+    {time:'200 miljoen jaar',ago:'13,6 miljard jaar',temp:'60 K',icon:'\u2B50',title:'Eerste Sterren',desc:'De "Kosmische Dageraad" — reusachtige sterren van zuiver waterstof en helium ontstaan. Ze zijn 100-1000x zwaarder dan de zon en leven slechts enkele miljoenen jaren.',major:true},
+    {time:'400 miljoen jaar',ago:'13,4 miljard jaar',temp:'40 K',icon:'\uD83C\uDF00',title:'Eerste Sterrenstelsels',desc:'Zwaartekracht trekt materie samen tot de eerste primitieve sterrenstelsels. James Webb Space Telescope heeft deze vroege stelsels waargenomen.'},
+    {time:'1 miljard jaar',ago:'12,8 miljard jaar',temp:'20 K',icon:'\uD83D\uDD73\uFE0F',title:'Supermassieve Zwarte Gaten',desc:'In de centra van sterrenstelsels groeien zwarte gaten door het verslinken van gas en andere sterren. Actieve quasars zijn de helderste objecten in het universum.'},
+    {time:'4,6 miljard jaar',ago:'9,2 miljard jaar',temp:'2,7 K',icon:'\u2600\uFE0F',title:'Ons Zonnestelsel Vormt',desc:'Een wolk van gas en stof stort in en vormt de Zon. Overgebleven materiaal klontert samen tot planeten, asteroiden en kometen.',major:true},
+    {time:'4,5 miljard jaar',ago:'9,3 miljard jaar',temp:'2,7 K',icon:'\uD83C\uDF0D',title:'Aarde Ontstaat',desc:'De proto-Aarde groeit door botsingen van planetesimalen. Een botsing met een Mars-groot object schept de Maan. De oceanen vullen zich met water gebracht door kometen.'},
+    {time:'3,8 miljard jaar',ago:'10 miljard jaar',temp:'2,7 K',icon:'\uD83E\uDDA0',title:'Eerste Leven',desc:'De eerste eencellige organismen verschijnen in de oer-oceanen. Het leven op Aarde is begonnen — de langste ononderbroken chemische reactie in de geschiedenis.',major:true},
+    {time:'540 miljoen jaar geleden',ago:'540 miljoen jaar',temp:'2,7 K',icon:'\uD83D\uDC1A',title:'Cambrische Explosie',desc:'Een plotselinge explosie van complexe meercellige levensvormen. Bijna alle hedendaagse diergroepen verschijnen in relatief korte tijd.'},
+    {time:'66 miljoen jaar geleden',ago:'66 miljoen jaar',temp:'2,7 K',icon:'\u2604\uFE0F',title:'Dinosaurussen Uitgestorven',desc:'Een asteroide van 10 km treft de Aarde bij Chicxulub, Mexico. 75% van alle soorten sterft uit. Zoogdieren nemen de vrijgekomen niches over.'},
+    {time:'300.000 jaar geleden',ago:'300.000 jaar',temp:'2,7 K',icon:'\uD83E\uDDCD',title:'Homo Sapiens',desc:'De moderne mens verschijnt in Afrika. We beginnen gereedschap te maken, kunst te creeren en de sterren te bestuderen.',major:true},
+    {time:'2015',ago:'11 jaar',temp:'2,725 K',icon:'\uD83C\uDF0A',title:'Eerste Zwaartekrachtsgolven',desc:'LIGO detecteert voor het eerst zwaartekrachtsgolven — rimpelingen in de ruimtetijd voorspeld door Einstein in 1916. Een nieuw venster op het universum opent zich.'},
+    {time:'Nu',ago:'Heden',temp:'2,725 K',icon:'\uD83D\uDD2D',title:'Vandaag',desc:'Het universum is 13,8 miljard jaar oud, 93 miljard lichtjaar in diameter, en bevat 2 biljoen sterrenstelsels. En het breidt nog steeds versneld uit.',major:true}
+  ];
+
+  document.getElementById('timelineContainer').innerHTML=events.map(e=>
+    `<div class="timeline-event${e.major?' major':''}">
+      <div class="te-icon">${e.icon}</div>
+      <div class="te-time">${e.time}</div>
+      <div class="te-temp">T \u2248 ${e.temp}</div>
+      <h3>${e.title}</h3>
+      <p>${e.desc}</p>
+    </div>`).join('');
+}
+
+// Window resize handler
+window.addEventListener('resize',()=>{
+  if(window._constLoaded)drawConstellations();
+  if(window._galLoaded)drawTuningFork();
+  if(window._wavesLoaded)drawChirp();
+  if(window._scaleLoaded)initScale();
+});
+</script>
+</body>
+</html>

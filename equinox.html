@@ -49,21 +49,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .row{display:flex;gap:16px;flex-wrap:wrap}
 .col{flex:1;min-width:280px}
 
-/* Celebration animation */
-@keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:1}100%{transform:translateY(-20vh) scale(1);opacity:0}}
-@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(251,191,36,.2)}50%{box-shadow:0 0 40px rgba(251,191,36,.5)}}
-@keyframes rotate-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes sun-pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.05);filter:brightness(1.2)}}
-
-.celebration-banner{background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(59,130,246,.1),rgba(168,85,247,.1));border:2px solid rgba(251,191,36,.4);text-align:center;padding:40px 20px;position:relative;overflow:hidden;animation:pulse-glow 3s ease-in-out infinite}
-.celebration-banner .sun-icon{font-size:80px;animation:sun-pulse 2s ease-in-out infinite;display:inline-block}
-.particle{position:absolute;pointer-events:none;animation:float-up var(--dur,4s) ease-out forwards;font-size:var(--sz,20px)}
+/* Status banner */
+.celebration-banner{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(168,85,247,.06));border:1px solid rgba(148,163,184,.2);text-align:center;padding:32px 20px;position:relative}
+.celebration-banner .sun-icon{display:inline-block}
 
 /* Event countdown cards */
 .event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 .event-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;text-align:center;transition:all .3s}
 .event-card:hover{transform:translateY(-4px);border-color:var(--gold)}
-.event-card.today{border-color:var(--gold);background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(251,191,36,.04));animation:pulse-glow 3s ease-in-out infinite}
+.event-card.today{border-color:var(--gold);background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(251,191,36,.04))}
 .event-card .event-emoji{font-size:40px;margin-bottom:8px}
 .event-card .event-name{font:700 16px var(--font);color:var(--tx)}
 .event-card .event-date{font:12px var(--mono);color:var(--tx2);margin:4px 0}
@@ -114,6 +108,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
       <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
       <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+      <a class="tab" href="observatory.html"><span class="mi">telescope</span> Observatorium</a>
     </div>
   </div>
 </div>
@@ -122,7 +117,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <!-- Celebration Banner -->
   <div class="card celebration-banner" id="celebrationBanner">
-    <div id="particles"></div>
     <div class="sun-icon" id="mainIcon"></div>
     <h1 style="font-size:28px;color:var(--gold);margin:12px 0 4px" id="mainTitle"></h1>
     <p style="font-size:15px;color:var(--tx);max-width:600px;margin:0 auto 8px" id="mainSubtitle"></p>
@@ -263,10 +257,10 @@ function formatTime(h){
   var now = new Date();
   var y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
   var events = [
-    {name:'Lente Equinox', month:2, day:20, icon:'\u2600\ufe0f', desc:'Dag en nacht zijn precies even lang. De astronomische lente begint!'},
-    {name:'Zomer Zonnewende', month:5, day:21, icon:'\ud83c\udf1e', desc:'De langste dag van het jaar. De zon bereikt haar hoogste punt aan de hemel.'},
-    {name:'Herfst Equinox', month:8, day:22, icon:'\ud83c\udf42', desc:'Dag en nacht zijn weer even lang. De astronomische herfst begint.'},
-    {name:'Winter Zonnewende', month:11, day:21, icon:'\u2744\ufe0f', desc:'De kortste dag van het jaar. Vanaf nu worden de dagen weer langer!'}
+    {name:'Lente Equinox', month:2, day:20, icon:'wb_sunny', desc:'Dag en nacht zijn precies even lang. De astronomische lente begint.'},
+    {name:'Zomer Zonnewende', month:5, day:21, icon:'light_mode', desc:'De langste dag van het jaar. De zon bereikt haar hoogste punt aan de hemel.'},
+    {name:'Herfst Equinox', month:8, day:22, icon:'wb_twilight', desc:'Dag en nacht zijn weer even lang. De astronomische herfst begint.'},
+    {name:'Winter Zonnewende', month:11, day:21, icon:'nights_stay', desc:'De kortste dag van het jaar. Vanaf nu worden de dagen weer langer.'}
   ];
 
   var todayEvent = null;
@@ -281,14 +275,12 @@ function formatTime(h){
   var icon = document.getElementById('mainIcon');
 
   if(todayEvent){
-    icon.textContent = todayEvent.icon;
-    title.textContent = 'Vandaag is het ' + todayEvent.name + '!';
+    icon.innerHTML = '<span class="mi" style="font-size:64px;color:var(--gold)">' + todayEvent.icon + '</span>';
+    title.textContent = 'Vandaag is het ' + todayEvent.name;
     subtitle.textContent = todayEvent.desc;
     var doy = dayOfYear(now);
     var dl = dayLength(LAT, doy);
-    detail.textContent = 'Daglengte vandaag: ' + formatTime(dl) + ' uur | Zonsopkomst: ' + formatTime(sunTimes(LAT, doy).rise) + ' | Zonsondergang: ' + formatTime(sunTimes(LAT, doy).set);
-    // Launch particles
-    launchParticles();
+    detail.textContent = 'Daglengte: ' + formatTime(dl) + ' uur | Zonsopkomst: ' + formatTime(sunTimes(LAT, doy).rise) + ' | Zonsondergang: ' + formatTime(sunTimes(LAT, doy).set);
   } else {
     // Find next event
     var next = null, minDiff = Infinity;
@@ -298,26 +290,13 @@ function formatTime(h){
       var diff = (ed - now) / 86400000;
       if(diff < minDiff){minDiff = diff; next = e; next._diff = Math.ceil(diff); next._date = ed;}
     });
-    icon.textContent = next.icon;
+    icon.innerHTML = '<span class="mi" style="font-size:64px;color:var(--gold)">' + next.icon + '</span>';
     title.textContent = 'Volgende: ' + next.name;
     subtitle.textContent = next.desc;
     detail.textContent = 'Nog ' + next._diff + ' dagen (' + next._date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) + ')';
     banner.style.animationName = 'none';
   }
 })();
-
-function launchParticles(){
-  var container = document.getElementById('particles');
-  var symbols = ['\u2728','\u2b50','\u2600\ufe0f','\ud83c\udf1f','\ud83c\udf1e','\ud83c\udf3b','\ud83c\udf3c','\ud83c\udf38'];
-  setInterval(function(){
-    var p = document.createElement('span');
-    p.className = 'particle';
-    p.textContent = symbols[Math.floor(Math.random()*symbols.length)];
-    p.style.cssText = 'left:'+Math.random()*100+'%;--dur:'+(3+Math.random()*4)+'s;--sz:'+(14+Math.random()*20)+'px';
-    container.appendChild(p);
-    setTimeout(function(){ p.remove(); }, 7000);
-  }, 400);
-}
 
 // ============================================================
 // EVENT COUNTDOWN GRID
@@ -326,13 +305,13 @@ function launchParticles(){
   var now = new Date();
   var y = now.getFullYear();
   var events = [
-    {name:'Lente Equinox', month:2, day:20, emoji:'\ud83c\udf3c\u2600\ufe0f', color:'var(--green)',
+    {name:'Lente Equinox', month:2, day:20, icon:'wb_sunny', color:'var(--green)',
      desc:'Dag en nacht zijn even lang. Begin van de astronomische lente. De zon kruist de hemelequator noordwaarts.'},
-    {name:'Zomer Zonnewende', month:5, day:21, emoji:'\ud83c\udf1e\u2600\ufe0f', color:'var(--gold)',
-     desc:'Langste dag. De zon staat het hoogst aan de hemel (23,5° boven equator). Begin astronomische zomer.'},
-    {name:'Herfst Equinox', month:8, day:22, emoji:'\ud83c\udf42\ud83c\udf3e', color:'var(--red)',
+    {name:'Zomer Zonnewende', month:5, day:21, icon:'light_mode', color:'var(--gold)',
+     desc:'Langste dag. De zon staat het hoogst aan de hemel (23,5 graden boven equator). Begin astronomische zomer.'},
+    {name:'Herfst Equinox', month:8, day:22, icon:'wb_twilight', color:'var(--red)',
      desc:'Dag en nacht zijn weer even lang. De zon kruist de hemelequator zuidwaarts. Begin astronomische herfst.'},
-    {name:'Winter Zonnewende', month:11, day:21, emoji:'\u2744\ufe0f\ud83c\udf19', color:'var(--blue)',
+    {name:'Winter Zonnewende', month:11, day:21, icon:'nights_stay', color:'var(--blue)',
      desc:'Kortste dag. De zon staat het laagst. Vanaf nu worden de dagen weer langer. Begin astronomische winter.'}
   ];
 
@@ -347,7 +326,7 @@ function launchParticles(){
     var card = document.createElement('div');
     card.className = 'event-card' + (isToday ? ' today' : '');
     card.innerHTML =
-      '<div class="event-emoji">' + e.emoji + '</div>' +
+      '<div class="event-emoji"><span class="mi" style="font-size:36px;color:' + e.color + '">' + e.icon + '</span></div>' +
       '<div class="event-name">' + e.name + '</div>' +
       '<div class="event-date">' + evDate.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) + '</div>' +
       '<div class="event-countdown" style="color:' + e.color + '">' + (isToday ? 'VANDAAG!' : diff + ' dagen') + '</div>' +
@@ -602,14 +581,14 @@ setInterval(drawTilt, 100);
   ctx.fillStyle = '#fbbf24';
   ctx.font = '11px "Space Mono"';
   ctx.textAlign = 'right';
-  ctx.fillText('\u2600 ' + formatTime(st.rise), cx - 10, cy + 40);
+  ctx.fillText(formatTime(st.rise), cx - 10, cy + 40);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#3b82f6';
-  ctx.fillText('\ud83c\udf19 ' + formatTime(st.set), cx + 10, cy + 40);
+  ctx.fillText(formatTime(st.set), cx + 10, cy + 40);
 
   // Labels
-  document.getElementById('dayHours').textContent = '\u2600 Dag: ' + Math.floor(dl) + ' uur ' + Math.round((dl%1)*60) + ' min';
-  document.getElementById('nightHours').textContent = '\ud83c\udf19 Nacht: ' + Math.floor(nl) + ' uur ' + Math.round((nl%1)*60) + ' min';
+  document.getElementById('dayHours').textContent = 'Dag: ' + Math.floor(dl) + ' uur ' + Math.round((dl%1)*60) + ' min';
+  document.getElementById('nightHours').textContent = 'Nacht: ' + Math.floor(nl) + ' uur ' + Math.round((nl%1)*60) + ' min';
 })();
 
 // ============================================================

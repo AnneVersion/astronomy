@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sterrenhemel — Astronomie & Astrologie</title>
+<title>Sterrenhemel — Astronomie Dashboard</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -170,7 +170,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="spacer"></div>
     <div class="tabs">
       <button class="tab active" onclick="showPanel('sky')"><span class="mi">nightlight</span> Sterrenkaart</button>
-      <button class="tab" onclick="showPanel('horoscope')"><span class="mi">stars</span> Horoscoop</button>
+      <button class="tab" onclick="showPanel('horoscope')"><span class="mi">stars</span> Geboortedatum</button>
       <button class="tab" onclick="showPanel('precessie')"><span class="mi">public</span> Precessie</button>
       <button class="tab" onclick="showPanel('planeten')"><span class="mi">rocket</span> Planeten</button>
       <span style="width:1px;height:20px;background:var(--glass-bd);margin:0 4px"></span>
@@ -181,6 +181,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
       <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
       <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+      <a class="tab" href="observatory.html"><span class="mi">telescope</span> Observatorium</a>
     </div>
   </div>
 </div>
@@ -190,7 +191,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 <!-- EQUINOX CELEBRATION BANNER -->
 <div id="equinoxBanner" class="card" style="display:none;background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(59,130,246,.1));border:1px solid rgba(251,191,36,.3);text-align:center;padding:24px;position:relative;overflow:hidden">
   <div style="position:absolute;inset:0;pointer-events:none" id="equinoxParticles"></div>
-  <div style="font-size:48px;margin-bottom:8px" id="equinoxEmoji"></div>
+  <div style="margin-bottom:8px" id="equinoxEmoji"></div>
   <h2 style="font-size:20px;color:var(--gold);margin-bottom:4px" id="equinoxTitle"></h2>
   <p style="font-size:13px;color:var(--tx2);margin-bottom:12px" id="equinoxSubtitle"></p>
   <div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap" id="equinoxCountdowns"></div>
@@ -243,8 +244,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="row">
     <div class="col">
       <div class="card">
-        <h2><span class="mi" style="color:var(--purple)">stars</span> Geboortehoroscoop</h2>
-        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">Bereken je sterrenbeeld op basis van je geboortedatum. We laten zien wat de westerse astrologie zegt (tropische dierenriem) en wat astronomisch klopt (siderische dierenriem met precessie).</p>
+        <h2><span class="mi" style="color:var(--purple)">stars</span> Hemelposities op je Geboortedatum</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">Bereken de werkelijke posities van zon, maan en planeten op je geboortedatum. We tonen het verschil tussen de astrologische <span class="astro-tooltip" data-tooltip="De tropische dierenriem is gebaseerd op de seizoenen, niet op sterrenbeelden. Vastgelegd rond 150 n.Chr. door Ptolemaeus.">tropische dierenriem</span> en de astronomisch correcte <span class="astro-tooltip" data-tooltip="De siderische dierenriem volgt de werkelijke posities van sterrenbeelden aan de hemel, gecorrigeerd voor precessie.">siderische dierenriem</span>.</p>
         <div class="form-row">
           <div class="form-group">
             <label>Geboortedatum</label>
@@ -1304,7 +1305,7 @@ function calcHoroscope(){
   html += '<div class="profile-header">';
   html += '<div class="profile-symbol">'+tropSign.symbol+'</div>';
   html += '<div class="profile-titles">';
-  html += '<h3>Jouw Kosmisch Profiel</h3>';
+  html += '<h3>Hemelposities op je geboortedatum</h3>';
   html += '<p>'+date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'})+' om '+timeStr+'</p>';
   html += '</div></div>';
 
@@ -1344,12 +1345,12 @@ function calcHoroscope(){
   // Strengths & Weaknesses
   html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">';
   html += '<div style="flex:1;min-width:200px">';
-  html += '<div style="font:600 11px var(--font);color:var(--green);margin-bottom:6px">\u2728 Sterke punten ('+tropSign.name+')</div>';
+  html += '<div style="font:600 11px var(--font);color:var(--green);margin-bottom:6px"><span class="mi" style="font-size:14px;vertical-align:-2px">add_circle</span> Sterke punten ('+tropSign.name+')</div>';
   html += '<div class="trait-tags">';
   tropSign.strengths.forEach(function(s){ html += '<span class="trait-tag strength">'+s+'</span>'; });
   html += '</div></div>';
   html += '<div style="flex:1;min-width:200px">';
-  html += '<div style="font:600 11px var(--font);color:var(--red);margin-bottom:6px">\u26a0 Valkuilen</div>';
+  html += '<div style="font:600 11px var(--font);color:var(--red);margin-bottom:6px"><span class="mi" style="font-size:14px;vertical-align:-2px">warning</span> Valkuilen</div>';
   html += '<div class="trait-tags">';
   tropSign.weaknesses.forEach(function(w){ html += '<span class="trait-tag weakness">'+w+'</span>'; });
   html += '</div></div>';
@@ -1357,7 +1358,7 @@ function calcHoroscope(){
 
   // Love style
   html += '<div style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:var(--rs);padding:10px;margin-bottom:12px">';
-  html += '<div style="font:600 11px var(--font);color:#ec4899;margin-bottom:3px">\u2764\ufe0f Liefdesstijl</div>';
+  html += '<div style="font:600 11px var(--font);color:#ec4899;margin-bottom:3px"><span class="mi" style="font-size:14px;vertical-align:-2px">favorite</span> Liefdesstijl</div>';
   html += '<div style="font:11px var(--font);color:var(--tx2)">'+tropSign.loveStyle+'</div>';
   html += '</div>';
 
@@ -1371,7 +1372,7 @@ function calcHoroscope(){
   }
 
   // Planet positions
-  html += '<h3 style="color:var(--blue)">\ud83c\udf0c Planeetposities bij geboorte</h3>';
+  html += '<h3 style="color:var(--blue)"><span class="mi" style="font-size:16px;vertical-align:-3px">public</span> Planeetposities bij geboorte</h3>';
   html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
   planetPositions.forEach(function(pp){
     html += '<div style="background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:5px">';
@@ -2040,7 +2041,7 @@ function setupStarTooltips(){
       var html = '';
       if(closest.type === 'star'){
         var info = STAR_FACTS[closest.data.name];
-        html = '<div class="tt-name">\u2b50 ' + closest.data.name + '</div>';
+        html = '<div class="tt-name"><span class="mi" style="font-size:16px;color:var(--gold)">star</span> ' + closest.data.name + '</div>';
         if(info){
           html += '<div class="tt-type">' + info.spectral + ' \u00b7 ' + info.constellation + '</div>';
           html += '<div class="tt-stats">';
@@ -2049,7 +2050,7 @@ function setupStarTooltips(){
           html += '<span class="tt-stat-label">Spectraaltype</span><span class="tt-stat-val">' + info.spectral + '</span>';
           html += '</div>';
           html += '<div class="tt-divider"></div>';
-          html += '<div class="tt-fact">\ud83d\udca1 ' + info.fact + '</div>';
+          html += '<div class="tt-fact"><span class="mi" style="font-size:14px;vertical-align:-2px;color:var(--gold)">lightbulb</span>' + info.fact + '</div>';
         } else {
           html += '<div class="tt-stats">';
           html += '<span class="tt-stat-label">Helderheid</span><span class="tt-stat-val">mag ' + closest.data.mag.toFixed(2) + '</span>';
@@ -2060,9 +2061,9 @@ function setupStarTooltips(){
       } else if(closest.type === 'planet'){
         var pf = PLANET_FACTS[closest.data.name];
         html = '<div class="tt-name" style="color:'+closest.data.color+'">';
-        if(closest.data.name === 'Zon') html += '\u2609 ';
-        else if(closest.data.name === 'Maan') html += '\u263d ';
-        else html += '\ud83c\udf0d ';
+        if(closest.data.name === 'Zon') html += '<span class="mi" style="font-size:16px">light_mode</span> ';
+        else if(closest.data.name === 'Maan') html += '<span class="mi" style="font-size:16px">dark_mode</span> ';
+        else html += '<span class="mi" style="font-size:16px">public</span> ';
         html += closest.data.name + '</div>';
         if(pf){
           html += '<div class="tt-type">' + pf.type + '</div>';
@@ -2077,7 +2078,7 @@ function setupStarTooltips(){
           html += '<div class="tt-divider"></div>';
           // Random fact
           var randomFact = pf.facts[Math.floor(Math.random() * pf.facts.length)];
-          html += '<div class="tt-fact">\ud83d\udca1 ' + randomFact + '</div>';
+          html += '<div class="tt-fact"><span class="mi" style="font-size:14px;vertical-align:-2px;color:var(--gold)">lightbulb</span>' + randomFact + '</div>';
         } else {
           html += '<div class="tt-stats">';
           html += '<span class="tt-stat-label">Hoogte</span><span class="tt-stat-val">' + closest.data.alt.toFixed(1) + '\u00b0</span>';
@@ -2086,7 +2087,7 @@ function setupStarTooltips(){
         }
       } else if(closest.type === 'deepsky'){
         var dsf = DEEP_SKY_FACTS[closest.data.name];
-        var typeIcons = {blackhole:'\ud83d\udd73\ufe0f', nebula:'\ud83c\udf0c', galaxy:'\ud83c\udf0c', cluster:'\u2728'};
+        var typeIcons = {blackhole:'<span class="mi" style="font-size:16px">lens_blur</span>', nebula:'<span class="mi" style="font-size:16px">cloud</span>', galaxy:'<span class="mi" style="font-size:16px">blur_on</span>', cluster:'<span class="mi" style="font-size:16px">grain</span>'};
         var typeColors = {blackhole:'#a855f7', nebula:'#ec4899', galaxy:'#3b82f6', cluster:'#60a5fa'};
         var typeLabels = {blackhole:'Zwart gat', nebula:'Nevel', galaxy:'Sterrenstelsel', cluster:'Sterrenhoop'};
         var dsColor = typeColors[closest.data.type] || '#a855f7';
@@ -2103,7 +2104,7 @@ function setupStarTooltips(){
           html += '</div>';
           html += '<div class="tt-divider"></div>';
           var dsFact = dsf.facts[Math.floor(Math.random() * dsf.facts.length)];
-          html += '<div class="tt-fact">\ud83d\udca1 '+dsFact+'</div>';
+          html += '<div class="tt-fact"><span class="mi" style="font-size:14px;vertical-align:-2px;color:var(--gold)">lightbulb</span>'+dsFact+'</div>';
         } else {
           html += '<div class="tt-type">'+typeLabels[closest.data.type]+'</div>';
         }
@@ -2144,7 +2145,7 @@ function getCompatibilityScore(sign1, sign2){
 }
 
 function buildCompatibilityHTML(sunSign, ascSign){
-  var html = '<h3 style="color:var(--cyan)">\u2764\ufe0f Compatibiliteit</h3>';
+  var html = '<h3 style="color:var(--cyan)"><span class="mi" style="font-size:16px;vertical-align:-3px">compare_arrows</span> Compatibiliteit</h3>';
   html += '<p style="font-size:11px;color:var(--tx2);margin-bottom:8px">Op basis van jouw zonteken ('+sunSign.name+') en ascendant ('+ascSign.name+'):</p>';
   html += '<div class="compat-grid">';
 
@@ -2177,9 +2178,10 @@ function buildCompatibilityHTML(sunSign, ascSign){
   html += '<div style="margin-top:12px">';
   html += '<h3 style="color:var(--green)">Top 3 Beste Matches</h3>';
   bestMatches.slice(0,3).forEach(function(m, i){
-    var medal = ['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'][i];
+    var rank = ['#1','#2','#3'][i];
+    var rankColor = ['var(--gold)','var(--tx2)','var(--tx3)'][i];
     html += '<div style="display:flex;gap:10px;align-items:center;padding:8px;background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);margin-bottom:6px">';
-    html += '<span style="font-size:20px">'+medal+'</span>';
+    html += '<span style="font:700 16px var(--mono);color:'+rankColor+';min-width:24px">'+rank+'</span>';
     html += '<span style="font-size:22px">'+m.sign.symbol+'</span>';
     html += '<div style="flex:1"><div style="font:600 12px var(--font)">'+m.sign.name+'</div>';
     html += '<div style="font:10px var(--font);color:var(--tx2)">'+m.sunReason+'</div></div>';
@@ -2196,10 +2198,10 @@ function buildCompatibilityHTML(sunSign, ascSign){
 function checkEquinoxBanner(){
   var now = new Date();
   var events = [
-    {name:'Lente Equinox', month:2, day:20, emoji:'\u2600\ufe0f\ud83c\udf3c', season:'lente'},
-    {name:'Zomer Zonnewende', month:5, day:21, emoji:'\u2600\ufe0f\ud83c\udf1e', season:'zomer'},
-    {name:'Herfst Equinox', month:8, day:22, emoji:'\ud83c\udf42\ud83c\udf1e', season:'herfst'},
-    {name:'Winter Zonnewende', month:11, day:21, emoji:'\u2744\ufe0f\ud83c\udf1e', season:'winter'}
+    {name:'Lente Equinox', month:2, day:20, icon:'wb_sunny', season:'lente'},
+    {name:'Zomer Zonnewende', month:5, day:21, icon:'light_mode', season:'zomer'},
+    {name:'Herfst Equinox', month:8, day:22, icon:'wb_twilight', season:'herfst'},
+    {name:'Winter Zonnewende', month:11, day:21, icon:'nights_stay', season:'winter'}
   ];
   var banner = document.getElementById('equinoxBanner');
   var today = null;
@@ -2217,8 +2219,8 @@ function checkEquinoxBanner(){
   }
   if(today){
     banner.style.display = 'block';
-    document.getElementById('equinoxEmoji').textContent = today.emoji;
-    document.getElementById('equinoxTitle').textContent = 'Vandaag: ' + today.name + '!';
+    document.getElementById('equinoxEmoji').innerHTML = '<span class="mi" style="font-size:40px;color:var(--gold)">' + today.icon + '</span>';
+    document.getElementById('equinoxTitle').textContent = 'Vandaag: ' + today.name;
     var subtitles = {
       'lente': 'Dag en nacht zijn vandaag precies even lang. De astronomische lente begint!',
       'zomer': 'De langste dag van het jaar! De zon bereikt haar hoogste punt.',
@@ -2235,7 +2237,7 @@ function checkEquinoxBanner(){
     var evDate = new Date(y, e.month, e.day);
     if(evDate < now) evDate = new Date(y+1, e.month, e.day);
     var diff = Math.ceil((evDate - now) / 86400000);
-    html += '<div style="text-align:center"><div style="font-size:24px">'+e.emoji+'</div>';
+    html += '<div style="text-align:center"><div><span class="mi" style="font-size:28px;color:var(--gold)">'+e.icon+'</span></div>';
     html += '<div style="font:600 11px var(--font);color:var(--tx)">'+e.name+'</div>';
     html += '<div style="font:700 16px var(--mono);color:var(--gold)">'+diff+' dagen</div></div>';
   });

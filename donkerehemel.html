@@ -106,6 +106,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
       <a class="tab active" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
       <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+      <a class="tab" href="observatory.html"><span class="mi">telescope</span> Observatorium</a>
     </div>
   </div>
 </div>
@@ -434,21 +435,21 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 // ============================================================
 (function(){
   var tips = [
-    {icon:'\ud83d\udc41\ufe0f', title:'Laat je ogen wennen', text:'Het duurt 20-30 minuten voordat je ogen volledig aan het donker gewend zijn. Vermijd fel licht, gebruik een rode zaklamp.'},
-    {icon:'\ud83c\udf19', title:'Check de maanfase', text:'Rond nieuwe maan is de hemel het donkerst. Een volle maan overspoelt de hemel met licht en maakt zwakke objecten onzichtbaar.'},
-    {icon:'\u2601\ufe0f', title:'Check het weer', text:'Wolken zijn de grootste vijand. Gebruik apps als Clear Outside of Meteoblue voor astronomische weersvoorspellingen.'},
-    {icon:'\ud83d\udd2d', title:'Begin met een verrekijker', text:'Een verrekijker (10x50) onthult al ongelooflijk veel: maankraters, Jupiter\'s manen, sterrenhopen, de Andromeda-nevel.'},
-    {icon:'\ud83d\udcf1', title:'Gebruik een sterrenkaart-app', text:'Apps als Stellarium, Sky Map of Star Walk helpen je sterrenbeelden en planeten te herkennen door je telefoon naar de hemel te richten.'},
-    {icon:'\ud83e\udde5', title:'Kleed je warm aan', text:'Stilzitten in de buitenlucht is koud, zelfs in de zomer! Neem extra lagen, een stoel of matje, en warme dranken mee.'},
-    {icon:'\u23f0', title:'Beste tijd', text:'De beste sterrenkijktijd is tussen 22:00 en 04:00, wanneer de zon ver onder de horizon staat. In de zomer zijn de nachten kort maar helder.'},
-    {icon:'\ud83d\udccd', title:'Zoek een donkere plek', text:'Rij minimaal 30 minuten van een grote stad vandaan. Zoek een plek met vrij zicht op de horizon, weg van straatverlichting.'}
+    {icon:'visibility', title:'Laat je ogen wennen', text:'Het duurt 20-30 minuten voordat je ogen volledig aan het donker gewend zijn. Vermijd fel licht, gebruik een rode zaklamp.'},
+    {icon:'dark_mode', title:'Check de maanfase', text:'Rond nieuwe maan is de hemel het donkerst. Een volle maan overspoelt de hemel met licht en maakt zwakke objecten onzichtbaar.'},
+    {icon:'cloud', title:'Check het weer', text:'Wolken zijn de grootste vijand. Gebruik apps als Clear Outside of Meteoblue voor astronomische weersvoorspellingen.'},
+    {icon:'search', title:'Begin met een verrekijker', text:'Een verrekijker (10x50) onthult al ongelooflijk veel: maankraters, Jupiter\'s manen, sterrenhopen, de Andromeda-nevel.'},
+    {icon:'smartphone', title:'Gebruik een sterrenkaart-app', text:'Apps als Stellarium, Sky Map of Star Walk helpen je sterrenbeelden en planeten te herkennen door je telefoon naar de hemel te richten.'},
+    {icon:'thermostat', title:'Kleed je warm aan', text:'Stilzitten in de buitenlucht is koud, zelfs in de zomer! Neem extra lagen, een stoel of matje, en warme dranken mee.'},
+    {icon:'schedule', title:'Beste tijd', text:'De beste sterrenkijktijd is tussen 22:00 en 04:00, wanneer de zon ver onder de horizon staat. In de zomer zijn de nachten kort maar helder.'},
+    {icon:'place', title:'Zoek een donkere plek', text:'Rij minimaal 30 minuten van een grote stad vandaan. Zoek een plek met vrij zicht op de horizon, weg van straatverlichting.'}
   ];
 
   var container = document.getElementById('tipsList');
   tips.forEach(function(t){
     var div = document.createElement('div');
     div.className = 'tip';
-    div.innerHTML = '<div class="tip-icon">' + t.icon + '</div><div class="tip-text"><strong>' + t.title + '</strong>' + t.text + '</div>';
+    div.innerHTML = '<div class="tip-icon"><span class="mi" style="font-size:24px;color:var(--gold)">' + t.icon + '</span></div><div class="tip-text"><strong>' + t.title + '</strong>' + t.text + '</div>';
     container.appendChild(div);
   });
 })();
