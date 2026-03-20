@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zonnestelsel Simulator — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(251,191,36,.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+.btn{padding:8px 16px;border-radius:var(--rs);font:600 12px var(--font);cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-gold{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.1));color:var(--gold);border:1px solid rgba(251,191,36,.25)}
+.btn-gold:hover{background:linear-gradient(135deg,rgba(251,191,36,.3),rgba(251,191,36,.15));transform:translateY(-1px)}
+.btn-active{background:rgba(251,191,36,.2);color:var(--gold)}
+
+.controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+
+/* Planet info popup */
+.planet-popup{position:fixed;z-index:300;background:rgba(6,8,15,.96);backdrop-filter:blur(20px);border:1px solid rgba(251,191,36,.25);border-radius:var(--r);padding:20px;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.6);display:none}
+.planet-popup.show{display:block}
+.planet-popup .close{position:absolute;top:8px;right:12px;cursor:pointer;color:var(--tx3);font-size:18px;background:none;border:none}
+.planet-popup h3{font:700 18px var(--font);color:var(--gold);margin-bottom:4px}
+.planet-popup .type{font:11px var(--mono);color:var(--tx3);margin-bottom:10px}
+.planet-popup .stats{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:11px var(--mono);margin-bottom:10px}
+.planet-popup .stat-label{color:var(--tx3)}
+.planet-popup .stat-val{color:var(--tx)}
+.planet-popup .fact{font:11px var(--font);color:var(--tx2);background:rgba(251,191,36,.04);padding:8px;border-radius:var(--rs);border-left:2px solid rgba(251,191,36,.3);margin-top:8px;line-height:1.5}
+
+/* Speed comparison */
+.speed-bars{display:flex;flex-direction:column;gap:6px}
+.speed-bar{display:flex;align-items:center;gap:10px;font:11px var(--font)}
+.speed-bar .bar-name{min-width:80px;color:var(--tx2)}
+.speed-bar .bar-fill{height:16px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font:10px var(--mono);color:#fff;min-width:fit-content;white-space:nowrap}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+}
+</style>
+</head>
+<body>
+
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab active" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2><span class="mi" style="color:var(--gold)">blur_circular</span> Zonnestelsel Simulator</h2>
+    <div class="controls">
+      <button class="btn btn-gold" id="btnPlay" onclick="togglePlay()"><span class="mi" style="font-size:14px">play_arrow</span> Start</button>
+      <button class="btn btn-gold" onclick="speedUp()"><span class="mi" style="font-size:14px">fast_forward</span> Sneller</button>
+      <button class="btn btn-gold" onclick="speedDown()"><span class="mi" style="font-size:14px">fast_rewind</span> Langzamer</button>
+      <span style="font:11px var(--mono);color:var(--tx2)" id="speedLabel">Snelheid: 1x</span>
+      <div style="flex:1"></div>
+      <button class="btn btn-gold" id="btnScale" onclick="toggleScale()"><span class="mi" style="font-size:14px">straighten</span> Zichtbare schaal</button>
+      <button class="btn btn-gold" id="btnLabels" onclick="toggleLabels()"><span class="mi" style="font-size:14px">label</span> Labels</button>
+      <button class="btn btn-gold" id="btnOrbits" onclick="toggleOrbits()"><span class="mi" style="font-size:14px">trip_origin</span> Banen</button>
+    </div>
+    <canvas id="solarCanvas" width="1000" height="700" style="width:100%;border-radius:var(--rs);cursor:pointer;background:#030510"></canvas>
+    <p style="font:10px var(--mono);color:var(--tx3);margin-top:8px">Klik op een planeet voor informatie. Scroll om in/uit te zoomen.</p>
+  </div>
+
+  <!-- Planet Info Popup -->
+  <div class="planet-popup" id="planetPopup">
+    <button class="close" onclick="closePlanetPopup()">&times;</button>
+    <h3 id="popupName"></h3>
+    <div class="type" id="popupType"></div>
+    <div class="stats" id="popupStats"></div>
+    <div class="fact" id="popupFact"></div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--cyan)">speed</span> Baansnelheid Vergelijking</h2>
+        <div class="speed-bars" id="speedBars"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--purple)">info</span> Zonnestelsel Feiten</h2>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.8" id="solarFacts"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Stars background
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+// ============================================================
+// SOLAR SYSTEM DATA
+// ============================================================
+var bodies = [
+  // name, AU, period(days), size(px visible), size(px real), color, type, orbSpeed km/s
+  {name:'Zon', au:0, period:0, sizeV:20, sizeR:20, color:'#fbbf24', type:'Ster', speed:0,
+   info:{type:'G2V Gele Dwerg', diameter:'1.392.700 km', massa:'333.000x Aarde', temp:'5.500\u00b0C oppervlak',
+   fact:'De zon bevat 99,86% van alle massa in ons zonnestelsel. Elke seconde zet ze 600 miljoen ton waterstof om in helium via kernfusie.'}},
+  {name:'Mercurius', au:0.387, period:87.97, sizeV:4, sizeR:1.5, color:'#94a3b8', type:'Rotsplaneet', speed:47.4,
+   info:{type:'Rotsplaneet', diameter:'4.879 km', massa:'0.055x Aarde', temp:'-180 tot +430\u00b0C',
+   fact:'Een dag op Mercurius (176 aardse dagen) duurt langer dan een jaar (88 dagen)! Het heeft het grootste temperatuurverschil van alle planeten.'}},
+  {name:'Venus', au:0.723, period:224.7, sizeV:6, sizeR:3, color:'#fbbf24', type:'Rotsplaneet', speed:35.0,
+   info:{type:'Rotsplaneet', diameter:'12.104 km', massa:'0.815x Aarde', temp:'+465\u00b0C gemiddeld',
+   fact:'Venus draait "achteruit" en is de heetste planeet door een extreem broeikaseffect. Het regent er zwavelzuur!'}},
+  {name:'Aarde', au:1.0, period:365.25, sizeV:6, sizeR:3, color:'#3b82f6', type:'Rotsplaneet', speed:29.8,
+   info:{type:'Rotsplaneet', diameter:'12.742 km', massa:'1x', temp:'+15\u00b0C gemiddeld',
+   fact:'De enige planeet waarvan we weten dat er leven op bestaat. 71% van het oppervlak is bedekt met water.'}},
+  {name:'Mars', au:1.524, period:687.0, sizeV:5, sizeR:2, color:'#ef4444', type:'Rotsplaneet', speed:24.1,
+   info:{type:'Rotsplaneet', diameter:'6.779 km', massa:'0.107x Aarde', temp:'-60\u00b0C gemiddeld',
+   fact:'De Olympus Mons is de hoogste berg in het zonnestelsel (21,9 km). Mars heeft twee kleine maantjes: Phobos en Deimos.'}},
+  // Asteroid belt marker
+  {name:'Ceres', au:2.77, period:1681, sizeV:2, sizeR:1, color:'#6b7280', type:'Dwergplaneet', speed:17.9,
+   info:{type:'Dwergplaneet (Asteroidengordel)', diameter:'939 km', massa:'0.00016x Aarde', temp:'-106\u00b0C',
+   fact:'Ceres is het grootste object in de asteroidengordel en bevat mogelijk een ondergrondse oceaan van vloeibaar water.'}},
+  {name:'Jupiter', au:5.203, period:4331, sizeV:14, sizeR:10, color:'#f97316', type:'Gasreus', speed:13.1,
+   info:{type:'Gasreus', diameter:'139.820 km', massa:'318x Aarde', temp:'-110\u00b0C wolkentoppen',
+   fact:'De Grote Rode Vlek is een storm groter dan de aarde die al 350+ jaar woedt. Jupiter heeft 95 bekende manen!'}},
+  {name:'Saturnus', au:9.537, period:10747, sizeV:12, sizeR:8, color:'#a3e635', type:'Gasreus', speed:9.7,
+   info:{type:'Gasreus', diameter:'116.460 km', massa:'95x Aarde', temp:'-140\u00b0C wolkentoppen',
+   fact:'De ringen zijn slechts 10 meter dik maar 282.000 km breed! Saturnus is zo licht dat hij zou drijven in water.'}},
+  {name:'Uranus', au:19.19, period:30589, sizeV:8, sizeR:4, color:'#06b6d4', type:'IJsreus', speed:6.8,
+   info:{type:'IJsreus', diameter:'50.724 km', massa:'14.5x Aarde', temp:'-224\u00b0C',
+   fact:'Uranus draait op zijn zij met een axiale kanteling van 98 graden! Ontdekt in 1781 door William Herschel.'}},
+  {name:'Neptunus', au:30.07, period:59800, sizeV:7, sizeR:4, color:'#3b82f6', type:'IJsreus', speed:5.4,
+   info:{type:'IJsreus', diameter:'49.528 km', massa:'17x Aarde', temp:'-218\u00b0C',
+   fact:'Neptunus heeft winden tot 2.100 km/u! Wiskundig voorspeld voordat hij werd waargenomen in 1846.'}},
+  {name:'Pluto', au:39.48, period:90560, sizeV:3, sizeR:1, color:'#a855f7', type:'Dwergplaneet', speed:4.7,
+   info:{type:'Dwergplaneet (Kuipergordel)', diameter:'2.377 km', massa:'0.002x Aarde', temp:'-230\u00b0C',
+   fact:'In 2006 gedegradeerd van planeet naar dwergplaneet. New Horizons vloog er in 2015 langs en onthulde een hartvormige vlakte.'}},
+  {name:'Eris', au:67.7, period:203830, sizeV:2, sizeR:1, color:'#ec4899', type:'Dwergplaneet', speed:3.4,
+   info:{type:'Dwergplaneet (Scattered Disk)', diameter:'2.326 km', massa:'0.0028x Aarde', temp:'-240\u00b0C',
+   fact:'De ontdekking van Eris leidde tot de herdefinitie van "planeet" en de degradatie van Pluto. Eris is iets zwaarder dan Pluto.'}}
+];
+
+// Halley's comet
+var halley = {name:'Halley', perihelion:0.586, aphelion:35.1, period:27510, eccentricity:0.967, inclination:162.3,
+  info:{type:'Periodieke komeet', omlooptijd:'75-76 jaar', laatst:'1986', volgende:'2061',
+  fact:'De beroemdste komeet! Al sinds 240 v.Chr. waargenomen. Edmund Halley voorspelde in 1705 de terugkeer.'}};
+
+// State
+var playing = false;
+var speed = 1;
+var time = 0;
+var showLabels = true;
+var showOrbits = true;
+var realScale = false;
+var zoomLevel = 1;
+var panX = 0, panY = 0;
+var animFrame = null;
+
+// ============================================================
+// RENDERING
+// ============================================================
+var canvas = document.getElementById('solarCanvas');
+var ctx = canvas.getContext('2d');
+
+function getScale(){
+  var maxAU = realScale ? 70 : 42;
+  return Math.min(canvas.width, canvas.height) / 2 / maxAU * zoomLevel;
+}
+
+function auToPixel(au, angle){
+  var scale = getScale();
+  var cx = canvas.width/2 + panX;
+  var cy = canvas.height/2 + panY;
+  return {
+    x: cx + au * scale * Math.cos(angle),
+    y: cy + au * scale * Math.sin(angle)
+  };
+}
+
+function draw(){
+  var W = canvas.width, H = canvas.height;
+  ctx.fillStyle = '#030510';
+  ctx.fillRect(0,0,W,H);
+
+  var cx = W/2 + panX;
+  var cy = H/2 + panY;
+  var scale = getScale();
+
+  // Asteroid belt
+  if(showOrbits){
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    for(var a = 0; a < Math.PI*2; a += 0.02){
+      var beltAU = 2.2 + Math.random() * 1.2;
+      var bx = cx + beltAU * scale * Math.cos(a);
+      var by = cy + beltAU * scale * Math.sin(a);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(bx, by, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // Orbit paths
+  if(showOrbits){
+    bodies.forEach(function(b){
+      if(b.au === 0) return;
+      ctx.strokeStyle = 'rgba(148,163,184,.1)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, b.au * scale, 0, Math.PI*2);
+      ctx.stroke();
+    });
+
+    // Halley's orbit (elliptical)
+    var a = (halley.perihelion + halley.aphelion) / 2;
+    var c = a - halley.perihelion;
+    var b = Math.sqrt(a*a - c*c);
+    ctx.strokeStyle = 'rgba(168,85,247,.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.ellipse(cx - c*scale, cy, a*scale, b*scale, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Halley's comet position
+  var halleyAngle = (time / halley.period) * Math.PI * 2;
+  var halleyA = (halley.perihelion + halley.aphelion) / 2;
+  var halleyC = halleyA - halley.perihelion;
+  var halleyB = Math.sqrt(halleyA*halleyA - halleyC*halleyC);
+  var hx = cx + (halleyA * Math.cos(halleyAngle) - halleyC) * scale;
+  var hy = cy + halleyB * Math.sin(halleyAngle) * scale;
+
+  // Comet tail
+  var tailAngle = Math.atan2(hy - cy, hx - cx);
+  ctx.save();
+  var tailGrad = ctx.createLinearGradient(hx, hy, hx + Math.cos(tailAngle) * 30, hy + Math.sin(tailAngle) * 30);
+  tailGrad.addColorStop(0, 'rgba(168,85,247,.6)');
+  tailGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = tailGrad;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.lineTo(hx + Math.cos(tailAngle) * 30, hy + Math.sin(tailAngle) * 30);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = '#a855f7';
+  ctx.beginPath();
+  ctx.arc(hx, hy, 3, 0, Math.PI*2);
+  ctx.fill();
+  if(showLabels){
+    ctx.fillStyle = '#a855f7';
+    ctx.font = '9px "DM Sans"';
+    ctx.textAlign = 'center';
+    ctx.fillText('Halley', hx, hy - 8);
+  }
+
+  // Bodies
+  bodies.forEach(function(b){
+    var angle = b.period > 0 ? (time / b.period) * Math.PI * 2 : 0;
+    var pos = auToPixel(b.au, angle);
+    var sz = realScale ? b.sizeR : b.sizeV;
+
+    // Sun glow
+    if(b.name === 'Zon'){
+      var sunGlow = ctx.createRadialGradient(pos.x, pos.y, sz, pos.x, pos.y, sz*3);
+      sunGlow.addColorStop(0, 'rgba(251,191,36,.4)');
+      sunGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = sunGlow;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, sz*3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Saturn rings
+    if(b.name === 'Saturnus'){
+      ctx.strokeStyle = 'rgba(163,230,53,.3)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(pos.x, pos.y, sz*1.8, sz*0.5, 0.3, 0, Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Body
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, sz, 0, Math.PI*2);
+    ctx.fill();
+
+    // Earth's moon
+    if(b.name === 'Aarde'){
+      var moonAngle = time / 27.3 * Math.PI * 2;
+      var moonDist = realScale ? 0.5 : 12;
+      var mx = pos.x + moonDist * Math.cos(moonAngle);
+      var my = pos.y + moonDist * Math.sin(moonAngle);
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath();
+      ctx.arc(mx, my, realScale ? 0.5 : 2, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Label
+    if(showLabels && sz >= 2){
+      ctx.fillStyle = b.color;
+      ctx.font = (b.name === 'Zon' ? '11' : '9') + 'px "DM Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.name, pos.x, pos.y - sz - 5);
+    }
+
+    // Store position for click detection
+    b._px = pos.x;
+    b._py = pos.y;
+    b._sz = sz;
+  });
+
+  // Info overlay
+  ctx.fillStyle = 'rgba(148,163,184,.5)';
+  ctx.font = '10px "Space Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText('Dag: ' + Math.floor(time), 10, 20);
+  ctx.fillText('Jaar: ' + (time/365.25).toFixed(1), 10, 34);
+  ctx.fillText('Zoom: ' + zoomLevel.toFixed(1) + 'x', 10, 48);
+}
+
+function animate(){
+  if(playing){
+    time += speed;
+    draw();
+    animFrame = requestAnimationFrame(animate);
+  }
+}
+
+function togglePlay(){
+  playing = !playing;
+  document.getElementById('btnPlay').innerHTML = '<span class="mi" style="font-size:14px">'+(playing?'pause':'play_arrow')+'</span> '+(playing?'Pauze':'Start');
+  if(playing) animate();
+}
+
+function speedUp(){speed = Math.min(speed*2, 256); document.getElementById('speedLabel').textContent = 'Snelheid: '+speed+'x';}
+function speedDown(){speed = Math.max(speed/2, 0.25); document.getElementById('speedLabel').textContent = 'Snelheid: '+speed+'x';}
+
+function toggleScale(){
+  realScale = !realScale;
+  document.getElementById('btnScale').innerHTML = '<span class="mi" style="font-size:14px">straighten</span> '+(realScale?'Zichtbare schaal':'Echte schaal');
+  draw();
+}
+function toggleLabels(){showLabels=!showLabels;draw();}
+function toggleOrbits(){showOrbits=!showOrbits;draw();}
+
+// Click detection
+canvas.addEventListener('click', function(e){
+  var rect = canvas.getBoundingClientRect();
+  var mx = (e.clientX - rect.left) * canvas.width / rect.width;
+  var my = (e.clientY - rect.top) * canvas.height / rect.height;
+
+  var closest = null, closestDist = Infinity;
+  bodies.forEach(function(b){
+    var dx = mx - b._px;
+    var dy = my - b._py;
+    var dist = Math.sqrt(dx*dx+dy*dy);
+    if(dist < Math.max(b._sz + 10, 15) && dist < closestDist){
+      closest = b;
+      closestDist = dist;
+    }
+  });
+
+  if(closest && closest.info){
+    showPlanetPopup(closest, e.clientX, e.clientY);
+  }
+});
+
+// Zoom
+canvas.addEventListener('wheel', function(e){
+  e.preventDefault();
+  zoomLevel *= e.deltaY < 0 ? 1.15 : 0.87;
+  zoomLevel = Math.max(0.2, Math.min(10, zoomLevel));
+  draw();
+});
+
+function showPlanetPopup(body, x, y){
+  var popup = document.getElementById('planetPopup');
+  document.getElementById('popupName').textContent = body.name;
+  document.getElementById('popupType').textContent = body.info.type;
+
+  var statsHTML = '';
+  Object.keys(body.info).forEach(function(k){
+    if(k !== 'type' && k !== 'fact'){
+      var label = k.charAt(0).toUpperCase() + k.slice(1);
+      statsHTML += '<div class="stat-label">'+label+'</div><div class="stat-val">'+body.info[k]+'</div>';
+    }
+  });
+  document.getElementById('popupStats').innerHTML = statsHTML;
+  document.getElementById('popupFact').textContent = body.info.fact;
+
+  popup.style.left = Math.min(x + 10, window.innerWidth - 380) + 'px';
+  popup.style.top = Math.min(y - 20, window.innerHeight - 300) + 'px';
+  popup.classList.add('show');
+}
+
+function closePlanetPopup(){
+  document.getElementById('planetPopup').classList.remove('show');
+}
+
+// ============================================================
+// SPEED COMPARISON BARS
+// ============================================================
+(function(){
+  var container = document.getElementById('speedBars');
+  var maxSpeed = 47.4; // Mercury
+
+  bodies.filter(function(b){return b.speed > 0}).forEach(function(b){
+    var pct = b.speed / maxSpeed * 100;
+    var div = document.createElement('div');
+    div.className = 'speed-bar';
+    div.innerHTML = '<div class="bar-name" style="color:'+b.color+'">'+b.name+'</div>' +
+      '<div class="bar-fill" style="width:'+pct+'%;background:'+b.color+';opacity:.7">'+b.speed+' km/s</div>';
+    container.appendChild(div);
+  });
+})();
+
+// ============================================================
+// SOLAR FACTS
+// ============================================================
+(function(){
+  var facts = [
+    'Het zonnestelsel is ~4,6 miljard jaar oud, gevormd uit een wolk gas en stof.',
+    'De asteroidengordel tussen Mars en Jupiter bevat miljoenen rotsblokken, maar de totale massa is minder dan 4% van de maan.',
+    'De Kuipergordel voorbij Neptunus bevat duizenden ijzige objecten, waaronder Pluto.',
+    'De Oortwolk, de buitenste rand van het zonnestelsel, reikt mogelijk tot 1,5 lichtjaar van de zon.',
+    'Voyager 1 verliet het zonnestelsel in 2012 en is nu het verst verwijderde menselijke object.',
+    'De komeet van Halley keert elke 75-76 jaar terug. De volgende passage is in 2061.',
+    'Jupiter beschermt de aarde door met zijn zwaartekracht kometen en asteroiden af te vangen.'
+  ];
+  var html = '<ul style="padding-left:16px">';
+  facts.forEach(function(f){ html += '<li style="margin-bottom:6px">' + f + '</li>'; });
+  html += '</ul>';
+  document.getElementById('solarFacts').innerHTML = html;
+})();
+
+// Initial draw
+draw();
+</script>
+</body>
+</html>

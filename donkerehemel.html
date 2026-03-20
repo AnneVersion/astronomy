@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Donkere Hemel Kaart — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:13px;font-weight:600;margin:12px 0 6px;color:var(--gold)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+/* Map */
+.map-container{position:relative;margin:16px 0}
+.map-container canvas{width:100%;border-radius:var(--r);cursor:crosshair}
+
+/* Legend */
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font:11px var(--font);color:var(--tx2)}
+.legend-dot{width:14px;height:14px;border-radius:3px}
+
+/* Spots */
+.spot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.spot-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;transition:all .3s}
+.spot-card:hover{transform:translateY(-3px);border-color:var(--green)}
+.spot-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.spot-name{font:700 15px var(--font);color:var(--green)}
+.spot-rating{font:10px var(--mono);color:var(--gold);padding:2px 8px;border-radius:10px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)}
+.spot-location{font:11px var(--mono);color:var(--tx3);margin-bottom:6px}
+.spot-desc{font:12px var(--font);color:var(--tx2);line-height:1.6;margin-bottom:8px}
+.spot-tags{display:flex;gap:4px;flex-wrap:wrap}
+.spot-tag{font:10px var(--font);color:var(--tx3);padding:2px 8px;border-radius:10px;border:1px solid var(--glass-bd)}
+
+/* Tips */
+.tip-list{display:flex;flex-direction:column;gap:8px}
+.tip{display:flex;gap:12px;padding:12px;background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--rs);align-items:flex-start}
+.tip .tip-icon{font-size:24px;flex-shrink:0}
+.tip .tip-text{font:12px var(--font);color:var(--tx2);line-height:1.6}
+.tip .tip-text strong{color:var(--tx);display:block;margin-bottom:2px}
+
+/* Bortle scale */
+.bortle-scale{display:flex;gap:2px;margin:16px 0}
+.bortle-item{flex:1;text-align:center;padding:8px 4px;border-radius:var(--rs);font:10px var(--mono);cursor:default;transition:all .2s}
+.bortle-item:hover{transform:translateY(-2px)}
+.bortle-item .number{font:700 16px var(--mono);display:block;margin-bottom:2px}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .spot-grid{grid-template-columns:1fr}
+  .bortle-scale{flex-wrap:wrap}
+  .bortle-item{min-width:50px}
+}
+</style>
+</head>
+<body>
+
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab active" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Intro -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--purple)">dark_mode</span> Donkere Hemel Kaart Nederland</h2>
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:16px">Nederland is een van de meest lichtvervuilde landen ter wereld. Toch zijn er plekken waar je de Melkweg nog kunt zien. Deze kaart toont de lichtvervuiling en de beste plekken om sterren te kijken.</p>
+
+    <!-- Bortle Scale -->
+    <h3>Bortle-schaal voor Lichtvervuiling</h3>
+    <p style="font-size:11px;color:var(--tx3);margin-bottom:8px">De Bortle-schaal meet de nachtelijke hemelhelderheid van 1 (uitstekend) tot 9 (stadscentrum).</p>
+    <div class="bortle-scale" id="bortleScale"></div>
+  </div>
+
+  <!-- Light Pollution Map -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--gold)">map</span> Lichtvervuilingskaart</h2>
+    <div class="map-container">
+      <canvas id="lightMap" width="800" height="700"></canvas>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#000033"></div> Donker (Bortle 3-4)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#003366"></div> Landelijk (Bortle 4-5)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#336699"></div> Voorstedelijk (Bortle 5-6)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#6699cc"></div> Stadsrand (Bortle 6-7)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#99ccff"></div> Stad (Bortle 7-8)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ccddff"></div> Stadscentrum (Bortle 8-9)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#22c55e;border:1px solid #22c55e"></div> Beste sterrenkijkplek</div>
+    </div>
+  </div>
+
+  <!-- Best Spots -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--green)">place</span> Beste Sterrenkijkplekken in Nederland</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Deze plekken hebben de minste lichtvervuiling en zijn officieel erkend als Dark Sky parken of gebieden.</p>
+    <div class="spot-grid" id="spotGrid"></div>
+  </div>
+
+  <div class="row">
+    <!-- Stargazing Tips -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--cyan)">tips_and_updates</span> Tips voor Sterrenkijken</h2>
+        <div class="tip-list" id="tipsList"></div>
+      </div>
+    </div>
+
+    <!-- What you can see -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">visibility</span> Wat Kun Je Zien?</h2>
+        <div id="visibilityGuide" style="font-size:12px;color:var(--tx2);line-height:1.8"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Stars
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+// ============================================================
+// BORTLE SCALE
+// ============================================================
+(function(){
+  var scale = [
+    {n:1, label:'Uitstekend', color:'#000011', textColor:'#fff', desc:'Melkweg werpt schaduwen. Zodiacaal licht, gegenschein zichtbaar.'},
+    {n:2, label:'Donker', color:'#000033', textColor:'#fff', desc:'Melkweg zeer gedetailleerd. M33 met blote oog zichtbaar.'},
+    {n:3, label:'Landelijk', color:'#003355', textColor:'#fff', desc:'Melkweg goed zichtbaar. Lichtvervuiling aan horizon.'},
+    {n:4, label:'Landelijk/Voorst.', color:'#115577', textColor:'#fff', desc:'Melkweg zichtbaar maar niet opvallend. Lichtkoepels zichtbaar.'},
+    {n:5, label:'Voorstedelijk', color:'#336699', textColor:'#fff', desc:'Melkweg zwak. Alleen heldere objecten zichtbaar.'},
+    {n:6, label:'Heldere voorst.', color:'#5588aa', textColor:'#fff', desc:'Melkweg alleen in zenit zichtbaar. Hemel grijsachtig.'},
+    {n:7, label:'Voorst./Stad', color:'#7799bb', textColor:'#000', desc:'Hele hemel grijsig-wit. Melkweg onzichtbaar.'},
+    {n:8, label:'Stad', color:'#99bbdd', textColor:'#000', desc:'Hemel witgrijs/oranje. Alleen heldere sterren.'},
+    {n:9, label:'Stadscentrum', color:'#bbddff', textColor:'#000', desc:'Alleen maan, planeten en enkele sterren zichtbaar.'}
+  ];
+
+  var container = document.getElementById('bortleScale');
+  scale.forEach(function(b){
+    var div = document.createElement('div');
+    div.className = 'bortle-item';
+    div.style.background = b.color;
+    div.style.color = b.textColor;
+    div.title = b.desc;
+    div.innerHTML = '<span class="number">' + b.n + '</span>' + b.label;
+    container.appendChild(div);
+  });
+})();
+
+// ============================================================
+// LIGHT POLLUTION MAP OF NETHERLANDS
+// ============================================================
+(function(){
+  var canvas = document.getElementById('lightMap');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  // Netherlands bounds (simplified)
+  var latMin = 50.75, latMax = 53.55;
+  var lonMin = 3.35, lonMax = 7.25;
+
+  function geoToCanvas(lat, lon){
+    var x = (lon - lonMin) / (lonMax - lonMin) * W;
+    var y = (1 - (lat - latMin) / (latMax - latMin)) * H;
+    return {x: x, y: y};
+  }
+
+  // Background - sea
+  ctx.fillStyle = '#030510';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw simplified NL shape
+  var nlOutline = [
+    [53.2,4.8],[53.4,5.5],[53.45,6.0],[53.4,6.5],[53.3,7.0],[53.2,7.2],
+    [52.8,7.1],[52.4,6.9],[52.1,7.0],[51.9,6.8],[51.5,6.2],[51.4,5.9],
+    [51.3,5.5],[51.35,5.0],[51.4,4.4],[51.5,3.9],[51.6,3.6],[51.8,3.5],
+    [52.0,4.0],[52.1,4.2],[52.3,4.5],[52.5,4.6],[52.7,4.7],[53.0,4.8],[53.2,4.8]
+  ];
+
+  ctx.beginPath();
+  nlOutline.forEach(function(p,i){
+    var pt = geoToCanvas(p[0], p[1]);
+    i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = '#0d1525';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(148,163,184,.3)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Clip to NL shape for light pollution
+  ctx.save();
+  ctx.beginPath();
+  nlOutline.forEach(function(p,i){
+    var pt = geoToCanvas(p[0], p[1]);
+    i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+  });
+  ctx.closePath();
+  ctx.clip();
+
+  // Cities and their light pollution zones (lat, lon, radius, intensity)
+  var lightSources = [
+    // Randstad - high pollution
+    {lat:52.37, lon:4.90, r:60, intensity:0.9, name:'Amsterdam'},
+    {lat:52.09, lon:5.12, r:40, intensity:0.8, name:'Utrecht'},
+    {lat:51.92, lon:4.48, r:55, intensity:0.85, name:'Rotterdam'},
+    {lat:52.08, lon:4.30, r:45, intensity:0.82, name:'Den Haag'},
+    // Medium cities
+    {lat:51.44, lon:5.47, r:35, intensity:0.7, name:'Eindhoven'},
+    {lat:51.84, lon:4.67, r:25, intensity:0.65, name:'Dordrecht'},
+    {lat:52.22, lon:6.90, r:25, intensity:0.6, name:'Enschede'},
+    {lat:53.22, lon:6.57, r:30, intensity:0.6, name:'Groningen'},
+    {lat:52.51, lon:6.09, r:20, intensity:0.55, name:'Zwolle'},
+    {lat:51.69, lon:5.30, r:25, intensity:0.6, name:'\'s-Hertogenbosch'},
+    {lat:51.59, lon:4.78, r:25, intensity:0.6, name:'Breda'},
+    {lat:51.44, lon:3.57, r:20, intensity:0.5, name:'Middelburg'},
+    {lat:52.63, lon:4.75, r:15, intensity:0.45, name:'Alkmaar'},
+    {lat:51.84, lon:5.85, r:20, intensity:0.55, name:'Nijmegen'},
+    {lat:51.96, lon:5.91, r:15, intensity:0.5, name:'Arnhem'},
+    {lat:52.37, lon:4.64, r:25, intensity:0.6, name:'Haarlem'},
+    {lat:53.20, lon:5.80, r:20, intensity:0.5, name:'Leeuwarden'},
+    // Smaller contributions
+    {lat:52.16, lon:4.49, r:20, intensity:0.55, name:'Leiden'},
+    {lat:52.51, lon:4.67, r:15, intensity:0.45, name:'Beverwijk'},
+    {lat:51.56, lon:5.08, r:20, intensity:0.55, name:'Tilburg'},
+    {lat:50.85, lon:5.69, r:20, intensity:0.5, name:'Maastricht'},
+    {lat:51.98, lon:5.90, r:15, intensity:0.45, name:'Arnhem'},
+  ];
+
+  // Render light pollution as overlapping gradients
+  lightSources.forEach(function(ls){
+    var pt = geoToCanvas(ls.lat, ls.lon);
+    var grad = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, ls.r * 2.5);
+    var alpha = ls.intensity * 0.4;
+    grad.addColorStop(0, 'rgba(200,180,140,' + alpha + ')');
+    grad.addColorStop(0.3, 'rgba(150,140,120,' + (alpha * 0.6) + ')');
+    grad.addColorStop(0.6, 'rgba(100,100,120,' + (alpha * 0.3) + ')');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, ls.r * 2.5, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+
+  // City labels
+  ctx.font = '9px "DM Sans"';
+  ctx.textAlign = 'center';
+  lightSources.forEach(function(ls){
+    if(ls.intensity >= 0.6){
+      var pt = geoToCanvas(ls.lat, ls.lon);
+      ctx.fillStyle = 'rgba(255,255,255,.5)';
+      ctx.fillText(ls.name, pt.x, pt.y + 4);
+    }
+  });
+
+  // Dark sky spots
+  var darkSpots = [
+    {lat:53.36, lon:6.15, name:'Lauwersmeer', rating:3},
+    {lat:53.44, lon:5.45, name:'Boschplaat', rating:3},
+    {lat:52.33, lon:5.88, name:'Veluwe', rating:4},
+    {lat:52.94, lon:6.37, name:'Drenthe', rating:4},
+    {lat:53.10, lon:5.10, name:'Afsluitdijk', rating:4},
+    {lat:51.36, lon:4.03, name:'Zeeland', rating:4},
+    {lat:52.78, lon:5.60, name:'Weerribben', rating:4}
+  ];
+
+  darkSpots.forEach(function(spot){
+    var pt = geoToCanvas(spot.lat, spot.lon);
+    // Green glow
+    var glow = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, 15);
+    glow.addColorStop(0, 'rgba(34,197,94,.5)');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 15, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 5, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '10px "DM Sans"';
+    ctx.textAlign = 'center';
+    ctx.fillText(spot.name, pt.x, pt.y - 10);
+  });
+
+  // Border text
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('Noordzee', 80, H/2);
+  ctx.fillText('Duitsland', W - 40, H/2);
+  ctx.fillText('Belgi\u00eb', W/2 - 60, H - 20);
+})();
+
+// ============================================================
+// BEST SPOTS
+// ============================================================
+(function(){
+  var spots = [
+    {
+      name: 'Lauwersmeer',
+      location: 'Groningen/Friesland',
+      rating: 'Bortle 3-4',
+      coords: '53.36\u00b0N, 6.15\u00b0O',
+      desc: 'Officieel Dark Sky Park sinds 2016! Het donkerste stuk Nederland. De Melkweg is hier prachtig zichtbaar en je kunt tot magnitude 6+ sterren zien.',
+      tags: ['Dark Sky Park', 'Melkweg zichtbaar', 'Gratis toegang', 'Parkeerplaats']
+    },
+    {
+      name: 'Boschplaat (Terschelling)',
+      location: 'Friesland (Waddeneiland)',
+      rating: 'Bortle 3',
+      coords: '53.44\u00b0N, 5.45\u00b0O',
+      desc: 'Een van de donkerste plekken van Nederland. Geen verlichting, geen bebouwing. De Melkweg is hier spectaculair. Bereikbaar via wandeling over het eiland.',
+      tags: ['Zeer donker', 'Natuurgebied', 'Waddeneiland', 'Wandeling nodig']
+    },
+    {
+      name: 'Veluwe (Posbank/Hoge Veluwe)',
+      location: 'Gelderland',
+      rating: 'Bortle 4-5',
+      coords: '52.05\u00b0N, 5.97\u00b0O',
+      desc: 'Groot natuurgebied met relatief donkere hemels. De heide biedt wijde horizonten. Nationaal Park De Hoge Veluwe organiseert regelmatig sterrenkijkavonden.',
+      tags: ['Heide', 'Wijds uitzicht', 'Georganiseerde avonden', 'Parkeerplaats']
+    },
+    {
+      name: 'Drentse Hondsrug',
+      location: 'Drenthe',
+      rating: 'Bortle 4',
+      coords: '52.95\u00b0N, 6.65\u00b0O',
+      desc: 'De Hondsrug in Drenthe is een van de dunst bevolkte gebieden van Nederland. Weinig lichtvervuiling, uitgestrekte natuur. Ideaal voor fotografen.',
+      tags: ['Dunbevolkt', 'Natuur', 'Fotografie', 'UNESCO Geopark']
+    },
+    {
+      name: 'Zeeuws-Vlaanderen',
+      location: 'Zeeland',
+      rating: 'Bortle 4-5',
+      coords: '51.33\u00b0N, 3.85\u00b0O',
+      desc: 'Het meest zuidwestelijke puntje van Nederland. De kust en polders bieden donkere hemels en wijde horizonten, ideaal om lage objecten te spotten.',
+      tags: ['Kustgebied', 'Wijde horizon', 'Zuidelijk', 'Rustiek']
+    },
+    {
+      name: 'Nationaal Park Weerribben-Wieden',
+      location: 'Overijssel',
+      rating: 'Bortle 4',
+      coords: '52.78\u00b0N, 5.95\u00b0O',
+      desc: 'Groot moerasgebied met weinig bebouwing. De waterpartijen zorgen voor prachtige reflecties van de sterrenhemel.',
+      tags: ['Moerasgebied', 'Reflecties', 'Nationaal Park', 'Kanoroutes']
+    }
+  ];
+
+  var grid = document.getElementById('spotGrid');
+  spots.forEach(function(s){
+    var card = document.createElement('div');
+    card.className = 'spot-card';
+    var tagsHTML = s.tags.map(function(t){ return '<span class="spot-tag">' + t + '</span>'; }).join('');
+    card.innerHTML =
+      '<div class="spot-header">' +
+        '<div class="spot-name">' + s.name + '</div>' +
+        '<div class="spot-rating">' + s.rating + '</div>' +
+      '</div>' +
+      '<div class="spot-location"><span class="mi" style="font-size:14px;vertical-align:-2px">place</span> ' + s.location + ' | ' + s.coords + '</div>' +
+      '<div class="spot-desc">' + s.desc + '</div>' +
+      '<div class="spot-tags">' + tagsHTML + '</div>';
+    grid.appendChild(card);
+  });
+})();
+
+// ============================================================
+// STARGAZING TIPS
+// ============================================================
+(function(){
+  var tips = [
+    {icon:'\ud83d\udc41\ufe0f', title:'Laat je ogen wennen', text:'Het duurt 20-30 minuten voordat je ogen volledig aan het donker gewend zijn. Vermijd fel licht, gebruik een rode zaklamp.'},
+    {icon:'\ud83c\udf19', title:'Check de maanfase', text:'Rond nieuwe maan is de hemel het donkerst. Een volle maan overspoelt de hemel met licht en maakt zwakke objecten onzichtbaar.'},
+    {icon:'\u2601\ufe0f', title:'Check het weer', text:'Wolken zijn de grootste vijand. Gebruik apps als Clear Outside of Meteoblue voor astronomische weersvoorspellingen.'},
+    {icon:'\ud83d\udd2d', title:'Begin met een verrekijker', text:'Een verrekijker (10x50) onthult al ongelooflijk veel: maankraters, Jupiter\'s manen, sterrenhopen, de Andromeda-nevel.'},
+    {icon:'\ud83d\udcf1', title:'Gebruik een sterrenkaart-app', text:'Apps als Stellarium, Sky Map of Star Walk helpen je sterrenbeelden en planeten te herkennen door je telefoon naar de hemel te richten.'},
+    {icon:'\ud83e\udde5', title:'Kleed je warm aan', text:'Stilzitten in de buitenlucht is koud, zelfs in de zomer! Neem extra lagen, een stoel of matje, en warme dranken mee.'},
+    {icon:'\u23f0', title:'Beste tijd', text:'De beste sterrenkijktijd is tussen 22:00 en 04:00, wanneer de zon ver onder de horizon staat. In de zomer zijn de nachten kort maar helder.'},
+    {icon:'\ud83d\udccd', title:'Zoek een donkere plek', text:'Rij minimaal 30 minuten van een grote stad vandaan. Zoek een plek met vrij zicht op de horizon, weg van straatverlichting.'}
+  ];
+
+  var container = document.getElementById('tipsList');
+  tips.forEach(function(t){
+    var div = document.createElement('div');
+    div.className = 'tip';
+    div.innerHTML = '<div class="tip-icon">' + t.icon + '</div><div class="tip-text"><strong>' + t.title + '</strong>' + t.text + '</div>';
+    container.appendChild(div);
+  });
+})();
+
+// ============================================================
+// VISIBILITY GUIDE
+// ============================================================
+(function(){
+  var guide = [
+    {bortle:'1-2', items:'Melkweg met schaduw, Zodiacaal licht, Gegenschein, M33 met blote oog, 7000+ sterren'},
+    {bortle:'3-4', items:'Melkweg duidelijk, Andromeda-nevel (M31), veel sterrenhopen, 3000+ sterren'},
+    {bortle:'5-6', items:'Melkweg zwak/onzichtbaar, heldere planeten, grote sterrenhopen, 500+ sterren'},
+    {bortle:'7-8', items:'Alleen heldere sterrenbeelden, planeten, maan, <200 sterren'},
+    {bortle:'9', items:'Alleen maan, Venus, Jupiter, Sirius en enkele sterren'}
+  ];
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html += '<tr style="border-bottom:1px solid var(--glass-bd)"><th style="text-align:left;padding:8px;color:var(--gold);font-size:10px">BORTLE</th><th style="text-align:left;padding:8px;color:var(--gold);font-size:10px">WAT KUN JE ZIEN?</th></tr>';
+  guide.forEach(function(g){
+    html += '<tr style="border-bottom:1px solid rgba(255,255,255,.03)"><td style="padding:8px;color:var(--cyan);font:12px var(--mono)">' + g.bortle + '</td><td style="padding:8px;color:var(--tx2)">' + g.items + '</td></tr>';
+  });
+  html += '</table>';
+  document.getElementById('visibilityGuide').innerHTML = html;
+})();
+</script>
+</body>
+</html>

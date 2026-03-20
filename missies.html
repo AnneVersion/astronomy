@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ruimtemissies — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+/* Mission cards */
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.mission-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;transition:all .3s;position:relative;overflow:hidden}
+.mission-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.mission-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mission-card.active::before{background:var(--green)}
+.mission-card.completed::before{background:var(--blue)}
+.mission-card.planned::before{background:var(--gold)}
+
+.mission-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.mission-name{font:700 16px var(--font);color:var(--tx)}
+.mission-agency{font:10px var(--mono);color:var(--tx3);padding:2px 8px;border-radius:10px;border:1px solid var(--glass-bd)}
+.mission-status{display:inline-flex;align-items:center;gap:4px;font:600 10px var(--font);padding:3px 10px;border-radius:10px;margin-bottom:8px}
+.mission-status.active{color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2)}
+.mission-status.completed{color:var(--blue);background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15)}
+.mission-status.planned{color:var(--gold);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.15)}
+
+.mission-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.mission-stat{font:11px var(--mono)}
+.mission-stat .label{color:var(--tx3);font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+.mission-stat .value{color:var(--tx);font-size:12px;margin-top:1px}
+
+.mission-desc{font:12px var(--font);color:var(--tx2);line-height:1.6;margin-top:8px}
+
+/* Voyager distance counter */
+.voyager-banner{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(59,130,246,.08));border:2px solid rgba(168,85,247,.3);text-align:center;padding:30px 20px}
+.voyager-distance{font:700 36px var(--mono);color:var(--cyan);margin:12px 0}
+.voyager-sub{font:12px var(--mono);color:var(--tx2)}
+
+@keyframes count-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .mission-grid{grid-template-columns:1fr}
+  .voyager-distance{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab active" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Voyager Distance Counter -->
+  <div class="card voyager-banner">
+    <h2 style="justify-content:center"><span class="mi" style="color:var(--purple)">rocket_launch</span> Voyager 1 - Het Verst Verwijderde Menselijke Object</h2>
+    <p style="font-size:13px;color:var(--tx2);max-width:600px;margin:0 auto 8px">Gelanceerd op 5 september 1977. Reist met 17 km/s door de interstellaire ruimte.</p>
+    <div class="voyager-distance" id="voyager1Dist">Laden...</div>
+    <div class="voyager-sub" id="voyager1Sub"></div>
+    <div style="display:flex;justify-content:center;gap:24px;margin-top:16px;flex-wrap:wrap">
+      <div><div style="font:700 18px var(--mono);color:var(--gold)" id="voyager1AU">--</div><div style="font:10px var(--font);color:var(--tx3)">AU van de Zon</div></div>
+      <div><div style="font:700 18px var(--mono);color:var(--gold)" id="voyager1LH">--</div><div style="font:10px var(--font);color:var(--tx3)">Lichturen</div></div>
+      <div><div style="font:700 18px var(--mono);color:var(--gold)" id="voyager1Speed">17,0 km/s</div><div style="font:10px var(--font);color:var(--tx3)">Snelheid</div></div>
+      <div><div style="font:700 18px var(--mono);color:var(--gold)" id="voyager1Signal">--</div><div style="font:10px var(--font);color:var(--tx3)">Signaalvertraging</div></div>
+    </div>
+  </div>
+
+  <!-- Active Missions -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--green)">rocket</span> Actieve Ruimtemissies</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Een overzicht van de belangrijkste actieve en geplande ruimtemissies.</p>
+    <div class="mission-grid" id="missionGrid"></div>
+  </div>
+
+</div>
+
+<script>
+// Stars
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+// ============================================================
+// VOYAGER DISTANCE CALCULATOR
+// ============================================================
+// Voyager 1 reference: On Jan 1, 2024, ~161 AU from sun, traveling at ~17.0 km/s (~3.6 AU/year)
+var VOYAGER1_REF_DATE = new Date('2024-01-01T00:00:00Z');
+var VOYAGER1_REF_AU = 161.0;
+var VOYAGER1_SPEED_AU_PER_YEAR = 3.6;
+var VOYAGER1_SPEED_KMS = 17.0;
+var AU_KM = 149597870.7;
+
+// Voyager 2 reference: ~136 AU on Jan 1, 2024, ~15.3 km/s
+var VOYAGER2_REF_AU = 136.0;
+var VOYAGER2_SPEED_AU_PER_YEAR = 3.2;
+
+function updateVoyager(){
+  var now = new Date();
+  var yearsSinceRef = (now - VOYAGER1_REF_DATE) / (365.25 * 24 * 3600 * 1000);
+
+  var v1AU = VOYAGER1_REF_AU + VOYAGER1_SPEED_AU_PER_YEAR * yearsSinceRef;
+  var v1KM = v1AU * AU_KM;
+  var v1LightHours = v1AU * 499.005 / 3600; // 1 AU = 499.005 light-seconds
+
+  document.getElementById('voyager1Dist').textContent = Math.floor(v1KM).toLocaleString('nl-NL') + ' km';
+  document.getElementById('voyager1Sub').textContent = 'van de Aarde | Sinds lancering: ' + ((now - new Date('1977-09-05')) / 86400000 / 365.25).toFixed(1) + ' jaar';
+  document.getElementById('voyager1AU').textContent = v1AU.toFixed(2);
+  document.getElementById('voyager1LH').textContent = v1LightHours.toFixed(1);
+  document.getElementById('voyager1Signal').textContent = v1LightHours.toFixed(1) + ' uur';
+}
+
+updateVoyager();
+setInterval(updateVoyager, 1000);
+
+// ============================================================
+// MISSIONS DATA
+// ============================================================
+var missions = [
+  {
+    name: 'James Webb Space Telescope',
+    agency: 'NASA/ESA/CSA',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '25 december 2021',
+    location: 'L2 Lagrangepunt',
+    distance: '1,5 miljoen km',
+    desc: 'De krachtigste ruimtetelescoop ooit gebouwd. Kijkt in infrarood naar de eerste sterrenstelsels, exoplaneetatmosferen en stervormingsgebieden. Heeft al duizenden baanbrekende ontdekkingen gedaan.',
+    facts: 'Spiegel: 6,5 meter | Zonneschild: zo groot als een tennisbaan | Temperatuur: -233\u00b0C'
+  },
+  {
+    name: 'Perseverance (Mars Rover)',
+    agency: 'NASA/JPL',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '30 juli 2020',
+    location: 'Jezero Krater, Mars',
+    distance: '~225 miljoen km',
+    desc: 'Zoekt naar tekenen van oud microbieel leven op Mars. Verzamelt bodemmonsters die later naar de aarde worden teruggebracht. De Ingenuity helikopter was de eerste powered flight op een andere planeet.',
+    facts: 'Massa: 1.025 kg | Bevat 23 camera\'s | Draagt de eerste Mars-helikopter'
+  },
+  {
+    name: 'Curiosity (Mars Rover)',
+    agency: 'NASA/JPL',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '26 november 2011',
+    location: 'Gale Krater, Mars',
+    distance: '~225 miljoen km',
+    desc: 'Al meer dan 13 jaar actief op Mars! Heeft bewezen dat Mars ooit vloeibaar water en organische moleculen had. Rijdt nu op de hellingen van Mount Sharp.',
+    facts: 'Massa: 899 kg | Angedreven door nucleaire energie | Al 30+ km gereden'
+  },
+  {
+    name: 'Voyager 1',
+    agency: 'NASA/JPL',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '5 september 1977',
+    location: 'Interstellaire ruimte',
+    distance: 'Zie teller hierboven',
+    desc: 'Het verst verwijderde menselijke object. Verliet de heliosfeer in augustus 2012 en reist nu door de interstellaire ruimte. Draagt de Golden Record met geluiden en beelden van de aarde.',
+    facts: 'Snelheid: 17 km/s | Zender: 23 watt (minder dan een koelkastlampje) | Bereikt Proxima Centauri over ~73.000 jaar'
+  },
+  {
+    name: 'Voyager 2',
+    agency: 'NASA/JPL',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '20 augustus 1977',
+    location: 'Interstellaire ruimte',
+    distance: '~20 miljard km',
+    desc: 'De enige sonde die alle vier reuzenplaneten heeft bezocht (Jupiter, Saturnus, Uranus, Neptunus). Verliet de heliosfeer in november 2018.',
+    facts: 'Enige bezoeker van Uranus (1986) en Neptunus (1989) | Nog steeds 5 instrumenten actief'
+  },
+  {
+    name: 'International Space Station',
+    agency: 'NASA/ESA/JAXA/Roscosmos/CSA',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '20 november 1998',
+    location: 'Lage aardbaan (408 km)',
+    distance: '408 km',
+    desc: 'Het grootste door mensen gemaakte object in de ruimte. Continu bewoond sinds november 2000. Laboratorium voor wetenschap in gewichtloosheid.',
+    facts: 'Grootte: voetbalveld | Snelheid: 27.600 km/u | Omlooptijd: 92 min | 16 zonsopgangen per dag'
+  },
+  {
+    name: 'Artemis Programma',
+    agency: 'NASA',
+    status: 'planned',
+    statusLabel: 'Gepland',
+    launch: 'Artemis II: sept 2025',
+    location: 'Maan',
+    distance: '384.400 km',
+    desc: 'NASA\'s programma om terug te keren naar de maan. Artemis I (onbemand) was succesvol in 2022. Artemis II stuurt astronauten om de maan. Artemis III wordt de eerste maanlanding sinds 1972.',
+    facts: 'SLS raket: krachtigste ooit | Orion capsule | Gateway ruimtestation rond de maan gepland'
+  },
+  {
+    name: 'New Horizons',
+    agency: 'NASA',
+    status: 'active',
+    statusLabel: 'Actief (beperkt)',
+    launch: '19 januari 2006',
+    location: 'Kuipergordel',
+    distance: '~57 AU',
+    desc: 'Vloog in 2015 langs Pluto en onthulde een verrassend complexe wereld. In 2019 vloog het langs Arrokoth, het verst verwijderde object ooit van dichtbij bestudeerd.',
+    facts: 'Snelheid bij lancering: snelste sonde ooit (58.536 km/u) | Pluto foto\'s: resolutie 80m/pixel'
+  },
+  {
+    name: 'Parker Solar Probe',
+    agency: 'NASA',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '12 augustus 2018',
+    location: 'Baan rond de zon',
+    distance: '~6,1 miljoen km van zon (perihelion)',
+    desc: 'De eerste ruimtesonde die door de buitenste atmosfeer van de zon (corona) vliegt. Het snelste door mensen gemaakte object ooit.',
+    facts: 'Max snelheid: 692.000 km/u | Hitteschild: 1.370\u00b0C | Komt tot 6,1 miljoen km van de zon'
+  },
+  {
+    name: 'Euclid',
+    agency: 'ESA',
+    status: 'active',
+    statusLabel: 'Actief',
+    launch: '1 juli 2023',
+    location: 'L2 Lagrangepunt',
+    distance: '1,5 miljoen km',
+    desc: 'Europese ruimtetelescoop die het heelal in kaart brengt om donkere materie en donkere energie te bestuderen. Maakt de grootste 3D-kaart van het heelal.',
+    facts: 'Brengt 36% van de hemel in kaart | 1,2m spiegel | Kijkt tot 10 miljard lichtjaar ver'
+  }
+];
+
+// ============================================================
+// RENDER MISSIONS
+// ============================================================
+(function(){
+  var grid = document.getElementById('missionGrid');
+
+  missions.forEach(function(m){
+    var card = document.createElement('div');
+    card.className = 'mission-card ' + m.status;
+    card.innerHTML =
+      '<div class="mission-header">' +
+        '<div class="mission-name">' + m.name + '</div>' +
+        '<div class="mission-agency">' + m.agency + '</div>' +
+      '</div>' +
+      '<div class="mission-status ' + m.status + '">' +
+        '<span class="mi" style="font-size:12px">' + (m.status==='active'?'check_circle':m.status==='planned'?'schedule':'task_alt') + '</span> ' +
+        m.statusLabel +
+      '</div>' +
+      '<div class="mission-stats">' +
+        '<div class="mission-stat"><div class="label">Lancering</div><div class="value">' + m.launch + '</div></div>' +
+        '<div class="mission-stat"><div class="label">Locatie</div><div class="value">' + m.location + '</div></div>' +
+        '<div class="mission-stat"><div class="label">Afstand</div><div class="value">' + m.distance + '</div></div>' +
+        '<div class="mission-stat"><div class="label">Details</div><div class="value" style="font-size:9px">' + m.facts + '</div></div>' +
+      '</div>' +
+      '<div class="mission-desc">' + m.desc + '</div>';
+    grid.appendChild(card);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Equinox & Zonnewende — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(251,191,36,.03) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* Twinkling stars background */
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:13px;font-weight:600;margin:12px 0 6px;color:var(--gold)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+/* Celebration animation */
+@keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:1}100%{transform:translateY(-20vh) scale(1);opacity:0}}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(251,191,36,.2)}50%{box-shadow:0 0 40px rgba(251,191,36,.5)}}
+@keyframes rotate-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes sun-pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.05);filter:brightness(1.2)}}
+
+.celebration-banner{background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(59,130,246,.1),rgba(168,85,247,.1));border:2px solid rgba(251,191,36,.4);text-align:center;padding:40px 20px;position:relative;overflow:hidden;animation:pulse-glow 3s ease-in-out infinite}
+.celebration-banner .sun-icon{font-size:80px;animation:sun-pulse 2s ease-in-out infinite;display:inline-block}
+.particle{position:absolute;pointer-events:none;animation:float-up var(--dur,4s) ease-out forwards;font-size:var(--sz,20px)}
+
+/* Event countdown cards */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.event-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;text-align:center;transition:all .3s}
+.event-card:hover{transform:translateY(-4px);border-color:var(--gold)}
+.event-card.today{border-color:var(--gold);background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(251,191,36,.04));animation:pulse-glow 3s ease-in-out infinite}
+.event-card .event-emoji{font-size:40px;margin-bottom:8px}
+.event-card .event-name{font:700 16px var(--font);color:var(--tx)}
+.event-card .event-date{font:12px var(--mono);color:var(--tx2);margin:4px 0}
+.event-card .event-countdown{font:700 28px var(--mono);color:var(--gold);margin:8px 0}
+.event-card .event-desc{font:12px var(--font);color:var(--tx3);line-height:1.5}
+
+/* Earth tilt viz */
+.earth-tilt-container{display:flex;justify-content:center;align-items:center;padding:20px}
+
+/* Day length chart */
+.chart-container{position:relative;margin-top:12px}
+
+/* Golden hour */
+.golden-card{background:linear-gradient(135deg,rgba(251,191,36,.1),rgba(239,68,68,.05));border:1px solid rgba(251,191,36,.2);border-radius:var(--r);padding:20px}
+.golden-times{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:12px}
+.golden-item{background:var(--glass);border-radius:var(--rs);padding:12px;text-align:center}
+.golden-item .time{font:700 20px var(--mono);color:var(--gold)}
+.golden-item .label{font:11px var(--font);color:var(--tx2);margin-top:4px}
+
+/* Sun path */
+.sun-path-container{position:relative}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .event-grid{grid-template-columns:1fr}
+  .golden-times{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab active" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Celebration Banner -->
+  <div class="card celebration-banner" id="celebrationBanner">
+    <div id="particles"></div>
+    <div class="sun-icon" id="mainIcon"></div>
+    <h1 style="font-size:28px;color:var(--gold);margin:12px 0 4px" id="mainTitle"></h1>
+    <p style="font-size:15px;color:var(--tx);max-width:600px;margin:0 auto 8px" id="mainSubtitle"></p>
+    <p style="font-size:13px;color:var(--tx2)" id="mainDetail"></p>
+  </div>
+
+  <!-- Event Countdown Grid -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--gold)">event</span> Astronomische Seizoenen</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Equinoxen en zonnewenden markeren het begin van de astronomische seizoenen. De aardas staat 23,5 graden scheef, waardoor we seizoenen hebben.</p>
+    <div class="event-grid" id="eventGrid"></div>
+  </div>
+
+  <div class="row">
+    <!-- Earth Tilt Visualization -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--cyan)">public</span> Aardas Kanteling (23,5°)</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De aardas staat 23,5 graden scheef ten opzichte van het baanvlak. Dit veroorzaakt de seizoenen.</p>
+        <div class="earth-tilt-container">
+          <canvas id="tiltCanvas" width="500" height="350"></canvas>
+        </div>
+        <div style="text-align:center;margin-top:8px">
+          <label style="font:500 11px var(--font);color:var(--tx2)">Maand: <span id="tiltMonth">Maart</span></label><br>
+          <input type="range" id="tiltSlider" min="0" max="11" value="2" step="1" style="width:80%;accent-color:var(--gold);margin-top:6px">
+        </div>
+      </div>
+    </div>
+
+    <!-- Day/Night Split -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">brightness_6</span> Dag/Nacht Verdeling Vandaag</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">Hoeveel uur licht en donker er vandaag is op 52°N (Nederland).</p>
+        <canvas id="dayNightCanvas" width="400" height="400" style="max-width:100%;display:block;margin:0 auto"></canvas>
+        <div style="text-align:center;margin-top:12px">
+          <span style="font:12px var(--mono);color:var(--gold)" id="dayHours"></span>
+          <span style="font:12px var(--mono);color:var(--tx3);margin:0 8px">|</span>
+          <span style="font:12px var(--mono);color:var(--blue)" id="nightHours"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Length Through Year -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--green)">show_chart</span> Daglengte Door Het Jaar</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De daglengte in Nederland (52°N) varieert van ~7,5 uur in december tot ~16,5 uur in juni. Een sinusvormig patroon veroorzaakt door de helling van de aardas.</p>
+    <div class="chart-container">
+      <canvas id="dayLengthCanvas" width="900" height="300" style="width:100%;border-radius:var(--rs)"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Golden Hour Calculator -->
+    <div class="col">
+      <div class="golden-card">
+        <h2 style="color:var(--gold);margin-bottom:4px"><span class="mi">wb_twilight</span> Golden Hour Vandaag</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:4px">Het gouden uur is het moment rond zonsopgang en zonsondergang wanneer het zonlicht warm en zacht is. Berekend voor Nederland (~52°N).</p>
+        <div class="golden-times" id="goldenTimes"></div>
+      </div>
+    </div>
+
+    <!-- Sun Position Diagram -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">wb_sunny</span> Zonpositie Door Het Jaar</h2>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">Waar de zon opkomt en ondergaat verandert door het jaar. In de zomer in het noordoosten/noordwesten, in de winter in het zuidoosten/zuidwesten.</p>
+        <canvas id="sunPathCanvas" width="500" height="350" style="width:100%;border-radius:var(--rs)"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// STARS BACKGROUND
+// ============================================================
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+// ============================================================
+// ASTRONOMICAL CALCULATIONS
+// ============================================================
+var LAT = 52.37; // Amsterdam
+var LON = 4.90;
+
+function dayOfYear(d){
+  var start = new Date(d.getFullYear(),0,0);
+  return Math.floor((d - start) / 86400000);
+}
+
+// Approximate day length in hours for given latitude and day of year
+function dayLength(lat, doy){
+  var axialTilt = 23.4397;
+  var decl = axialTilt * Math.sin(2 * Math.PI * (doy - 81) / 365);
+  var declRad = decl * Math.PI / 180;
+  var latRad = lat * Math.PI / 180;
+  var cosHA = -Math.tan(latRad) * Math.tan(declRad);
+  if(cosHA < -1) return 24;
+  if(cosHA > 1) return 0;
+  var ha = Math.acos(cosHA);
+  return 2 * ha * 12 / Math.PI;
+}
+
+// Solar declination for a day of year
+function solarDeclination(doy){
+  return 23.4397 * Math.sin(2 * Math.PI * (doy - 81) / 365);
+}
+
+// Approximate sunrise/sunset times for NL
+function sunTimes(lat, doy){
+  var dl = dayLength(lat, doy);
+  var noon = 12.0 + (LON > 0 ? -LON/15 : Math.abs(LON)/15) + 1; // +1 for CET
+  var rise = noon - dl/2;
+  var set = noon + dl/2;
+  return {rise: rise, set: set, length: dl};
+}
+
+function formatTime(h){
+  var hr = Math.floor(h);
+  var mn = Math.round((h - hr) * 60);
+  if(mn === 60){hr++;mn=0}
+  return (hr<10?'0':'')+hr+':'+(mn<10?'0':'')+mn;
+}
+
+// ============================================================
+// CELEBRATION BANNER
+// ============================================================
+(function(){
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  var events = [
+    {name:'Lente Equinox', month:2, day:20, icon:'\u2600\ufe0f', desc:'Dag en nacht zijn precies even lang. De astronomische lente begint!'},
+    {name:'Zomer Zonnewende', month:5, day:21, icon:'\ud83c\udf1e', desc:'De langste dag van het jaar. De zon bereikt haar hoogste punt aan de hemel.'},
+    {name:'Herfst Equinox', month:8, day:22, icon:'\ud83c\udf42', desc:'Dag en nacht zijn weer even lang. De astronomische herfst begint.'},
+    {name:'Winter Zonnewende', month:11, day:21, icon:'\u2744\ufe0f', desc:'De kortste dag van het jaar. Vanaf nu worden de dagen weer langer!'}
+  ];
+
+  var todayEvent = null;
+  events.forEach(function(e){
+    if(m === e.month && d === e.day) todayEvent = e;
+  });
+
+  var banner = document.getElementById('celebrationBanner');
+  var title = document.getElementById('mainTitle');
+  var subtitle = document.getElementById('mainSubtitle');
+  var detail = document.getElementById('mainDetail');
+  var icon = document.getElementById('mainIcon');
+
+  if(todayEvent){
+    icon.textContent = todayEvent.icon;
+    title.textContent = 'Vandaag is het ' + todayEvent.name + '!';
+    subtitle.textContent = todayEvent.desc;
+    var doy = dayOfYear(now);
+    var dl = dayLength(LAT, doy);
+    detail.textContent = 'Daglengte vandaag: ' + formatTime(dl) + ' uur | Zonsopkomst: ' + formatTime(sunTimes(LAT, doy).rise) + ' | Zonsondergang: ' + formatTime(sunTimes(LAT, doy).set);
+    // Launch particles
+    launchParticles();
+  } else {
+    // Find next event
+    var next = null, minDiff = Infinity;
+    events.forEach(function(e){
+      var ed = new Date(y, e.month, e.day);
+      if(ed < now) ed = new Date(y+1, e.month, e.day);
+      var diff = (ed - now) / 86400000;
+      if(diff < minDiff){minDiff = diff; next = e; next._diff = Math.ceil(diff); next._date = ed;}
+    });
+    icon.textContent = next.icon;
+    title.textContent = 'Volgende: ' + next.name;
+    subtitle.textContent = next.desc;
+    detail.textContent = 'Nog ' + next._diff + ' dagen (' + next._date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) + ')';
+    banner.style.animationName = 'none';
+  }
+})();
+
+function launchParticles(){
+  var container = document.getElementById('particles');
+  var symbols = ['\u2728','\u2b50','\u2600\ufe0f','\ud83c\udf1f','\ud83c\udf1e','\ud83c\udf3b','\ud83c\udf3c','\ud83c\udf38'];
+  setInterval(function(){
+    var p = document.createElement('span');
+    p.className = 'particle';
+    p.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    p.style.cssText = 'left:'+Math.random()*100+'%;--dur:'+(3+Math.random()*4)+'s;--sz:'+(14+Math.random()*20)+'px';
+    container.appendChild(p);
+    setTimeout(function(){ p.remove(); }, 7000);
+  }, 400);
+}
+
+// ============================================================
+// EVENT COUNTDOWN GRID
+// ============================================================
+(function(){
+  var now = new Date();
+  var y = now.getFullYear();
+  var events = [
+    {name:'Lente Equinox', month:2, day:20, emoji:'\ud83c\udf3c\u2600\ufe0f', color:'var(--green)',
+     desc:'Dag en nacht zijn even lang. Begin van de astronomische lente. De zon kruist de hemelequator noordwaarts.'},
+    {name:'Zomer Zonnewende', month:5, day:21, emoji:'\ud83c\udf1e\u2600\ufe0f', color:'var(--gold)',
+     desc:'Langste dag. De zon staat het hoogst aan de hemel (23,5° boven equator). Begin astronomische zomer.'},
+    {name:'Herfst Equinox', month:8, day:22, emoji:'\ud83c\udf42\ud83c\udf3e', color:'var(--red)',
+     desc:'Dag en nacht zijn weer even lang. De zon kruist de hemelequator zuidwaarts. Begin astronomische herfst.'},
+    {name:'Winter Zonnewende', month:11, day:21, emoji:'\u2744\ufe0f\ud83c\udf19', color:'var(--blue)',
+     desc:'Kortste dag. De zon staat het laagst. Vanaf nu worden de dagen weer langer. Begin astronomische winter.'}
+  ];
+
+  var grid = document.getElementById('eventGrid');
+  events.forEach(function(e){
+    var evDate = new Date(y, e.month, e.day);
+    var past = evDate < now;
+    if(past) evDate = new Date(y+1, e.month, e.day);
+    var diff = Math.ceil((evDate - now) / 86400000);
+    var isToday = now.getMonth() === e.month && now.getDate() === e.day;
+
+    var card = document.createElement('div');
+    card.className = 'event-card' + (isToday ? ' today' : '');
+    card.innerHTML =
+      '<div class="event-emoji">' + e.emoji + '</div>' +
+      '<div class="event-name">' + e.name + '</div>' +
+      '<div class="event-date">' + evDate.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) + '</div>' +
+      '<div class="event-countdown" style="color:' + e.color + '">' + (isToday ? 'VANDAAG!' : diff + ' dagen') + '</div>' +
+      '<div class="event-desc">' + e.desc + '</div>';
+    grid.appendChild(card);
+  });
+})();
+
+// ============================================================
+// EARTH TILT VISUALIZATION
+// ============================================================
+var tiltSlider = document.getElementById('tiltSlider');
+var tiltMonthLabel = document.getElementById('tiltMonth');
+var monthNames = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+
+function drawTilt(){
+  var canvas = document.getElementById('tiltCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  var month = parseInt(tiltSlider.value);
+  tiltMonthLabel.textContent = monthNames[month];
+
+  // Day of year for middle of month
+  var doy = month * 30.44 + 15;
+  var decl = solarDeclination(doy);
+  var tilt = 23.5;
+
+  // Draw sun rays from right
+  ctx.save();
+  for(var i = 0; i < 8; i++){
+    var ry = H/2 - 80 + i * 20;
+    ctx.strokeStyle = 'rgba(251,191,36,'+(0.15 + 0.05*Math.sin(Date.now()/1000+i))+')';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8,6]);
+    ctx.beginPath();
+    ctx.moveTo(W - 20, ry);
+    ctx.lineTo(W/2 + 60, ry);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Sun on right
+  var sunGrad = ctx.createRadialGradient(W-60, H/2-20, 10, W-60, H/2-20, 50);
+  sunGrad.addColorStop(0, 'rgba(251,191,36,1)');
+  sunGrad.addColorStop(0.5, 'rgba(251,191,36,0.3)');
+  sunGrad.addColorStop(1, 'rgba(251,191,36,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(W-60, H/2-20, 50, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(W-60, H/2-20, 22, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#06080f';
+  ctx.font = '10px "Space Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('ZON', W-60, H/2-16);
+
+  // Earth center
+  var ex = W/2 - 40, ey = H/2;
+  var earthR = 55;
+
+  // Orbital plane line
+  ctx.strokeStyle = 'rgba(148,163,184,.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(ex - 120, ey);
+  ctx.lineTo(ex + 120, ey);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px "DM Sans"';
+  ctx.fillStyle = 'var(--tx3)';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('baanvlak', ex - 118, ey - 6);
+
+  // Draw Earth (tilted)
+  ctx.save();
+  ctx.translate(ex, ey);
+
+  // The tilt direction depends on month
+  // In June (month 5), north pole tilts toward sun (right)
+  // In December (month 11), north pole tilts away from sun (left)
+  var tiltAngle = tilt * Math.PI / 180;
+  // Phase: June = max tilt toward sun, Dec = max tilt away
+  var phase = Math.cos((month - 5) * Math.PI / 6);
+  var visualTilt = tiltAngle * phase;
+
+  ctx.rotate(-visualTilt);
+
+  // Earth body
+  var earthGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, earthR);
+  earthGrad.addColorStop(0, '#1a4d7a');
+  earthGrad.addColorStop(0.6, '#0d3460');
+  earthGrad.addColorStop(1, '#091f3a');
+  ctx.fillStyle = earthGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, earthR, 0, Math.PI*2);
+  ctx.fill();
+
+  // Continents (simplified)
+  ctx.fillStyle = 'rgba(34,197,94,.3)';
+  ctx.beginPath();
+  ctx.ellipse(-15, -15, 18, 12, -0.3, 0, Math.PI*2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(10, 15, 12, 18, 0.2, 0, Math.PI*2);
+  ctx.fill();
+
+  // Day/night terminator (vertical line, sunlight from right)
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.arc(0, 0, earthR, -Math.PI/2, Math.PI/2, false);
+  ctx.lineTo(0, earthR);
+  ctx.lineTo(0, -earthR);
+  ctx.closePath();
+  // Only shade the left side (away from sun)
+  ctx.save();
+  ctx.clip();
+  ctx.fillRect(-earthR-5, -earthR-5, earthR+5, earthR*2+10);
+  ctx.restore();
+
+  // Axis line
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, -earthR - 30);
+  ctx.lineTo(0, earthR + 30);
+  ctx.stroke();
+
+  // North pole marker
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(0, -earthR - 30, 4, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('N', 0, -earthR - 38);
+  ctx.fillText('Z', 0, earthR + 44);
+
+  // Equator
+  ctx.strokeStyle = 'rgba(251,191,36,.4)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, earthR, earthR * 0.3, 0, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+
+  // Tilt angle arc
+  ctx.strokeStyle = 'rgba(239,68,68,.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ex, ey - earthR - 40);
+  ctx.lineTo(ex, ey - earthR - 70);
+  ctx.stroke();
+  ctx.fillStyle = '#ef4444';
+  ctx.font = '11px "Space Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText('23,5\u00b0', ex + 5, ey - earthR - 55);
+
+  // Info text
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '11px "DM Sans"';
+  ctx.textAlign = 'center';
+  var info = '';
+  if(month >= 2 && month <= 4) info = 'Lente: noordelijk halfrond kantelt richting zon';
+  else if(month >= 5 && month <= 7) info = 'Zomer: maximale belichting noordelijk halfrond';
+  else if(month >= 8 && month <= 10) info = 'Herfst: noordelijk halfrond kantelt weg van zon';
+  else info = 'Winter: minimale belichting noordelijk halfrond';
+  ctx.fillText(info, W/2, H - 15);
+}
+
+tiltSlider.addEventListener('input', drawTilt);
+drawTilt();
+// Gentle animation
+setInterval(drawTilt, 100);
+
+// ============================================================
+// DAY/NIGHT CIRCLE
+// ============================================================
+(function(){
+  var canvas = document.getElementById('dayNightCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 40;
+
+  var now = new Date();
+  var doy = dayOfYear(now);
+  var dl = dayLength(LAT, doy);
+  var nl = 24 - dl;
+  var dayFrac = dl / 24;
+
+  // Day arc
+  var startAngle = -Math.PI/2;
+  var dayAngle = dayFrac * Math.PI * 2;
+
+  // Background
+  ctx.fillStyle = '#0c1022';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 10, 0, Math.PI*2);
+  ctx.fill();
+
+  // Night portion (full circle)
+  ctx.fillStyle = 'rgba(59,130,246,.15)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fill();
+
+  // Day portion
+  var dayGrad = ctx.createRadialGradient(cx, cy, r*0.3, cx, cy, r);
+  dayGrad.addColorStop(0, 'rgba(251,191,36,.3)');
+  dayGrad.addColorStop(1, 'rgba(251,191,36,.15)');
+  ctx.fillStyle = dayGrad;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, r, startAngle, startAngle + dayAngle);
+  ctx.closePath();
+  ctx.fill();
+
+  // Border
+  ctx.strokeStyle = 'rgba(251,191,36,.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, startAngle + dayAngle);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(59,130,246,.4)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle + dayAngle, startAngle + Math.PI*2);
+  ctx.stroke();
+
+  // Center text
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '700 20px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText(Math.floor(dl) + 'u ' + Math.round((dl % 1) * 60) + 'm', cx, cy - 10);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px "DM Sans"';
+  ctx.fillText('daglicht', cx, cy + 10);
+
+  // Sunrise / sunset markers
+  var st = sunTimes(LAT, doy);
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = '11px "Space Mono"';
+  ctx.textAlign = 'right';
+  ctx.fillText('\u2600 ' + formatTime(st.rise), cx - 10, cy + 40);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#3b82f6';
+  ctx.fillText('\ud83c\udf19 ' + formatTime(st.set), cx + 10, cy + 40);
+
+  // Labels
+  document.getElementById('dayHours').textContent = '\u2600 Dag: ' + Math.floor(dl) + ' uur ' + Math.round((dl%1)*60) + ' min';
+  document.getElementById('nightHours').textContent = '\ud83c\udf19 Nacht: ' + Math.floor(nl) + ' uur ' + Math.round((nl%1)*60) + ' min';
+})();
+
+// ============================================================
+// DAY LENGTH THROUGH YEAR CHART
+// ============================================================
+(function(){
+  var canvas = document.getElementById('dayLengthCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var pad = {t:30, b:40, l:50, r:20};
+  var cw = W - pad.l - pad.r;
+  var ch = H - pad.t - pad.b;
+
+  // Background
+  ctx.fillStyle = '#0a0e1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(148,163,184,.08)';
+  ctx.lineWidth = 1;
+  for(var h = 6; h <= 18; h += 2){
+    var gy = pad.t + ch - (h - 4) / 16 * ch;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, gy);
+    ctx.lineTo(W - pad.r, gy);
+    ctx.stroke();
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px "Space Mono"';
+    ctx.textAlign = 'right';
+    ctx.fillText(h + 'u', pad.l - 8, gy + 4);
+  }
+
+  // Month labels
+  var months = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+  var monthDays = [0,31,59,90,120,151,181,212,243,273,304,334];
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'center';
+  months.forEach(function(m, i){
+    var x = pad.l + (monthDays[i] + 15) / 365 * cw;
+    ctx.fillText(m, x, H - pad.b + 20);
+  });
+
+  // Fill area under curve
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t + ch);
+  for(var d = 0; d <= 365; d++){
+    var x = pad.l + d / 365 * cw;
+    var dl = dayLength(LAT, d);
+    var y = pad.t + ch - (dl - 4) / 16 * ch;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W - pad.r, pad.t + ch);
+  ctx.closePath();
+  var fillGrad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+  fillGrad.addColorStop(0, 'rgba(251,191,36,.15)');
+  fillGrad.addColorStop(1, 'rgba(251,191,36,.02)');
+  ctx.fillStyle = fillGrad;
+  ctx.fill();
+
+  // Curve line
+  ctx.beginPath();
+  for(var d = 0; d <= 365; d++){
+    var x = pad.l + d / 365 * cw;
+    var dl = dayLength(LAT, d);
+    var y = pad.t + ch - (dl - 4) / 16 * ch;
+    d === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 12-hour reference line
+  var y12 = pad.t + ch - (12 - 4) / 16 * ch;
+  ctx.strokeStyle = 'rgba(148,163,184,.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(pad.l, y12);
+  ctx.lineTo(W - pad.r, y12);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '9px "Space Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText('12u (equinox)', pad.l + 4, y12 - 5);
+
+  // Mark today
+  var now = new Date();
+  var todayDoy = dayOfYear(now);
+  var tx = pad.l + todayDoy / 365 * cw;
+  var tdl = dayLength(LAT, todayDoy);
+  var ty = pad.t + ch - (tdl - 4) / 16 * ch;
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.arc(tx, ty, 5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('Vandaag: ' + Math.floor(tdl) + 'u ' + Math.round((tdl%1)*60) + 'm', tx, ty - 12);
+
+  // Mark equinoxes and solstices
+  var markers = [
+    {doy:79, label:'Lente Eq.', color:'#22c55e'},
+    {doy:172, label:'Zomer Zw.', color:'#fbbf24'},
+    {doy:265, label:'Herfst Eq.', color:'#ef4444'},
+    {doy:355, label:'Winter Zw.', color:'#3b82f6'}
+  ];
+  markers.forEach(function(mk){
+    var mx = pad.l + mk.doy / 365 * cw;
+    ctx.strokeStyle = mk.color;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.4;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath();
+    ctx.moveTo(mx, pad.t);
+    ctx.lineTo(mx, pad.t + ch);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = mk.color;
+    ctx.font = '9px "DM Sans"';
+    ctx.fillText(mk.label, mx, pad.t - 5);
+  });
+})();
+
+// ============================================================
+// GOLDEN HOUR CALCULATOR
+// ============================================================
+(function(){
+  var now = new Date();
+  var doy = dayOfYear(now);
+  var st = sunTimes(LAT, doy);
+
+  // Golden hour = ~1 hour after sunrise and ~1 hour before sunset
+  // Blue hour = ~30min before sunrise and ~30min after sunset
+  var times = [
+    {label:'Blauwe uur (ochtend)', time: formatTime(st.rise - 0.5) + ' - ' + formatTime(st.rise), icon:'nights_stay'},
+    {label:'Gouden uur (ochtend)', time: formatTime(st.rise) + ' - ' + formatTime(st.rise + 1), icon:'wb_twilight'},
+    {label:'Zonsopkomst', time: formatTime(st.rise), icon:'wb_sunny'},
+    {label:'Zonsondergang', time: formatTime(st.set), icon:'wb_sunny'},
+    {label:'Gouden uur (avond)', time: formatTime(st.set - 1) + ' - ' + formatTime(st.set), icon:'wb_twilight'},
+    {label:'Blauwe uur (avond)', time: formatTime(st.set) + ' - ' + formatTime(st.set + 0.5), icon:'nights_stay'}
+  ];
+
+  var container = document.getElementById('goldenTimes');
+  times.forEach(function(t){
+    var div = document.createElement('div');
+    div.className = 'golden-item';
+    div.innerHTML = '<div class="time"><span class="mi" style="font-size:16px;vertical-align:-2px;margin-right:4px">'+t.icon+'</span>'+t.time+'</div><div class="label">'+t.label+'</div>';
+    container.appendChild(div);
+  });
+})();
+
+// ============================================================
+// SUN PATH DIAGRAM
+// ============================================================
+(function(){
+  var canvas = document.getElementById('sunPathCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, groundY = H - 60;
+  var radius = Math.min(W, H) - 120;
+
+  ctx.fillStyle = '#0a0e1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ground
+  ctx.fillStyle = 'rgba(34,197,94,.08)';
+  ctx.fillRect(0, groundY, W, H - groundY);
+  ctx.strokeStyle = 'rgba(34,197,94,.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  ctx.lineTo(W, groundY);
+  ctx.stroke();
+
+  // Compass
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('N', cx, groundY + 18);
+  ctx.fillText('O', W - 20, groundY + 18);
+  ctx.fillText('W', 20, groundY + 18);
+  ctx.fillText('Z', cx, H - 5);
+
+  // Draw sun arcs for different seasons
+  var seasons = [
+    {label:'Zomer (21 jun)', doy:172, color:'#fbbf24', dash:[]},
+    {label:'Equinox (20 mrt)', doy:79, color:'#22c55e', dash:[4,4]},
+    {label:'Winter (21 dec)', doy:355, color:'#3b82f6', dash:[2,4]}
+  ];
+
+  seasons.forEach(function(s){
+    var dl = dayLength(LAT, s.doy);
+    var st = sunTimes(LAT, s.doy);
+    var maxAlt = solarDeclination(s.doy) + (90 - LAT);
+
+    // Arc from sunrise to sunset
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(s.dash);
+    ctx.beginPath();
+
+    for(var t = st.rise; t <= st.set; t += 0.1){
+      var frac = (t - st.rise) / (st.set - st.rise);
+      var alt = maxAlt * Math.sin(frac * Math.PI);
+      var az = 90 + (frac - 0.5) * 180 * (dl / 12);
+      // Map to canvas
+      var x = cx + (az - 180) / 180 * (W/2 - 40);
+      var y = groundY - (alt / 90) * (groundY - 30);
+      t === st.rise ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Label at peak
+    var peakX = cx;
+    var peakY = groundY - (maxAlt / 90) * (groundY - 30);
+    ctx.fillStyle = s.color;
+    ctx.font = '9px "DM Sans"';
+    ctx.fillText(s.label, peakX, peakY - 8);
+    ctx.fillText(maxAlt.toFixed(1) + '\u00b0', peakX, peakY + 14);
+  });
+
+  // Legend
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'left';
+  var ly = 20;
+  seasons.forEach(function(s){
+    ctx.fillStyle = s.color;
+    ctx.fillRect(15, ly - 6, 20, 2);
+    ctx.fillText(s.label, 40, ly);
+    ly += 16;
+  });
+})();
+</script>
+</body>
+</html>

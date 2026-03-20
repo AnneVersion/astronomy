@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Live Hemel — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:13px;font-weight:600;margin:12px 0 6px;color:var(--gold)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+.planet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.planet-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);padding:16px;text-align:center;transition:all .3s}
+.planet-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.planet-card .planet-icon{font-size:36px;margin-bottom:6px}
+.planet-card .planet-name{font:700 14px var(--font)}
+.planet-card .planet-info{font:11px var(--mono);color:var(--tx2);margin-top:4px}
+.planet-card .planet-status{font:10px var(--font);margin-top:6px;padding:3px 8px;border-radius:10px;display:inline-block}
+.planet-card .visible{color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2)}
+.planet-card .not-visible{color:var(--red);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15)}
+
+.moon-display{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.moon-visual{position:relative;width:150px;height:150px;flex-shrink:0}
+
+.meteor-table{width:100%;border-collapse:collapse;font-size:12px}
+.meteor-table th{text-align:left;padding:8px;color:var(--tx3);font:600 10px var(--font);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-bd)}
+.meteor-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.meteor-table tr:hover{background:rgba(255,255,255,.02)}
+.meteor-table .active-shower{color:var(--gold);font-weight:600}
+
+.iss-card{background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(168,85,247,.08));border:1px solid rgba(59,130,246,.2)}
+.iss-pos{display:flex;gap:24px;flex-wrap:wrap;margin-top:12px}
+.iss-stat{text-align:center}
+.iss-stat .value{font:700 20px var(--mono);color:var(--cyan)}
+.iss-stat .label{font:11px var(--font);color:var(--tx2);margin-top:2px}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .row{flex-direction:column}
+  .col{min-width:0}
+  .planet-grid{grid-template-columns:1fr 1fr}
+  .moon-display{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab active" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Current Sky Status -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--cyan)">visibility</span> Live Hemel boven Nederland</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Wat er nu zichtbaar is aan de hemel boven Nederland (52.4°N, 4.9°O). Bijgewerkt op <span id="updateTime" style="color:var(--gold)"></span></p>
+    <div id="skyStatus" style="font:12px var(--mono);color:var(--tx2);padding:8px;background:var(--bg2);border-radius:var(--rs);margin-bottom:16px"></div>
+  </div>
+
+  <div class="row">
+    <!-- Planet Positions -->
+    <div class="col">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--gold)">blur_circular</span> Planeetposities Nu</h2>
+        <div class="planet-grid" id="planetGrid"></div>
+      </div>
+    </div>
+
+    <!-- Moon Phase -->
+    <div class="col" style="max-width:380px">
+      <div class="card">
+        <h2><span class="mi" style="color:var(--tx2)">dark_mode</span> Maanfase</h2>
+        <div class="moon-display">
+          <div class="moon-visual"><canvas id="moonCanvas" width="150" height="150"></canvas></div>
+          <div>
+            <div style="font:700 18px var(--font);color:var(--tx)" id="moonName"></div>
+            <div style="font:13px var(--mono);color:var(--gold)" id="moonIllum"></div>
+            <div style="font:12px var(--mono);color:var(--tx2);margin-top:4px" id="moonAge"></div>
+            <div style="font:11px var(--font);color:var(--tx3);margin-top:8px;line-height:1.6" id="moonDetails"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ISS Tracker -->
+  <div class="card iss-card">
+    <h2><span class="mi" style="color:var(--cyan)">satellite_alt</span> ISS Positie (Live)</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Het International Space Station draait op ~408 km hoogte met 27.600 km/u om de aarde.</p>
+    <div class="iss-pos" id="issPos">
+      <div class="iss-stat"><div class="value" id="issLat">--</div><div class="label">Breedtegraad</div></div>
+      <div class="iss-stat"><div class="value" id="issLon">--</div><div class="label">Lengtegraad</div></div>
+      <div class="iss-stat"><div class="value" id="issSpeed">27.600 km/u</div><div class="label">Snelheid</div></div>
+      <div class="iss-stat"><div class="value" id="issAlt">408 km</div><div class="label">Hoogte</div></div>
+    </div>
+    <canvas id="issMap" width="800" height="400" style="width:100%;border-radius:var(--rs);margin-top:16px;background:#0a0e1a"></canvas>
+    <p style="font:10px var(--mono);color:var(--tx3);margin-top:8px" id="issUpdate">Laden...</p>
+  </div>
+
+  <!-- Meteor Showers -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--purple)">star_rate</span> Meteorenregenkalender 2026</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De belangrijkste meteorenregens van het jaar. Bij helder weer en weinig lichtvervuiling zijn ze met het blote oog zichtbaar.</p>
+    <table class="meteor-table">
+      <thead><tr><th>Naam</th><th>Piek</th><th>Periode</th><th>Aantal/uur</th><th>Radiant</th><th>Status</th></tr></thead>
+      <tbody id="meteorTable"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// Stars background
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+var LAT = 52.37, LON = 4.90;
+var now = new Date();
+
+document.getElementById('updateTime').textContent = now.toLocaleString('nl-NL');
+
+// ============================================================
+// ASTRONOMICAL HELPERS
+// ============================================================
+function julianDate(d){
+  return d.getTime() / 86400000 + 2440587.5;
+}
+function gmst(jd){
+  var T = (jd - 2451545.0) / 36525;
+  var gmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0) + T*T*(0.000387933 - T/38710000);
+  return ((gmst % 360) + 360) % 360;
+}
+function localSiderealTime(jd, lonDeg){
+  return ((gmst(jd) + lonDeg) % 360 + 360) % 360;
+}
+
+// Approximate planet ecliptic longitude (simplified Keplerian elements)
+function planetEclipticLon(planet, jd){
+  var T = (jd - 2451545.0) / 36525;
+  var elements = {
+    'Mercurius': {L0:252.2509, Ld:149472.6746, a:0.387},
+    'Venus':     {L0:181.9798, Ld:58517.8157,  a:0.723},
+    'Aarde':     {L0:100.4664, Ld:35999.3729,  a:1.000},
+    'Mars':      {L0:355.4533, Ld:19140.3001,  a:1.524},
+    'Jupiter':   {L0:34.3515,  Ld:3034.9057,   a:5.203},
+    'Saturnus':  {L0:49.9489,  Ld:1222.1138,   a:9.537},
+    'Uranus':    {L0:313.2322, Ld:428.2749,    a:19.19},
+    'Neptunus':  {L0:304.8800, Ld:218.4862,    a:30.07}
+  };
+  var e = elements[planet];
+  if(!e) return 0;
+  return ((e.L0 + e.Ld * T) % 360 + 360) % 360;
+}
+
+function eclipticToConstellation(lon){
+  var signs = ['Ram','Stier','Tweelingen','Kreeft','Leeuw','Maagd','Weegschaal','Schorpioen','Boogschutter','Steenbok','Waterman','Vissen'];
+  var idx = Math.floor(((lon % 360) + 360) % 360 / 30);
+  return signs[idx];
+}
+
+// Approximate altitude of object
+function approxAltitude(ra, dec, lst, lat){
+  var haRad = (lst - ra * 15) * Math.PI / 180;
+  var decRad = dec * Math.PI / 180;
+  var latRad = lat * Math.PI / 180;
+  var alt = Math.asin(Math.sin(latRad)*Math.sin(decRad) + Math.cos(latRad)*Math.cos(decRad)*Math.cos(haRad));
+  return alt * 180 / Math.PI;
+}
+
+// ============================================================
+// SKY STATUS
+// ============================================================
+(function(){
+  var jd = julianDate(now);
+  var lst = localSiderealTime(jd, LON);
+  var hr = now.getHours();
+  var isDark = hr >= 21 || hr < 5;
+  var isTwilight = (hr >= 19 && hr < 21) || (hr >= 5 && hr < 7);
+
+  var status = '';
+  if(isDark) status = 'Het is donker - ideaal moment om de sterrenhemel te bekijken!';
+  else if(isTwilight) status = 'Het is schemering - planeten en heldere sterren kunnen zichtbaar zijn.';
+  else status = 'Het is overdag - alleen de zon is zichtbaar. Kom vanavond terug voor sterren en planeten!';
+
+  status += ' | Lokale sterrentijd: ' + (lst/15).toFixed(2) + 'h';
+  status += ' | Juliaanse datum: ' + jd.toFixed(2);
+
+  document.getElementById('skyStatus').textContent = status;
+})();
+
+// ============================================================
+// PLANET POSITIONS
+// ============================================================
+(function(){
+  var jd = julianDate(now);
+  var lst = localSiderealTime(jd, LON);
+  var earthLon = planetEclipticLon('Aarde', jd);
+
+  var planets = [
+    {name:'Mercurius', icon:'\u263f', color:'#94a3b8'},
+    {name:'Venus', icon:'\u2640', color:'#fbbf24'},
+    {name:'Mars', icon:'\u2642', color:'#ef4444'},
+    {name:'Jupiter', icon:'\u2643', color:'#f97316'},
+    {name:'Saturnus', icon:'\u2644', color:'#a3e635'},
+    {name:'Uranus', icon:'\u2645', color:'#06b6d4'},
+    {name:'Neptunus', icon:'\u2646', color:'#3b82f6'}
+  ];
+
+  var grid = document.getElementById('planetGrid');
+  planets.forEach(function(p){
+    var lon = planetEclipticLon(p.name, jd);
+    var constellation = eclipticToConstellation(lon);
+    // Rough elongation from sun
+    var elongation = ((lon - earthLon) % 360 + 360) % 360;
+    if(elongation > 180) elongation = 360 - elongation;
+    var visible = elongation > 20;
+    // Evening/morning
+    var when = lon > earthLon ? 'avondster' : 'ochtendster';
+
+    var card = document.createElement('div');
+    card.className = 'planet-card';
+    card.innerHTML =
+      '<div class="planet-icon" style="color:'+p.color+'">'+p.icon+'</div>' +
+      '<div class="planet-name" style="color:'+p.color+'">'+p.name+'</div>' +
+      '<div class="planet-info">In: '+constellation+'</div>' +
+      '<div class="planet-info">Elongatie: '+elongation.toFixed(0)+'\u00b0</div>' +
+      '<div class="planet-status '+(visible?'visible':'not-visible')+'">'+(visible ? when : 'Niet zichtbaar')+'</div>';
+    grid.appendChild(card);
+  });
+})();
+
+// ============================================================
+// MOON PHASE
+// ============================================================
+(function(){
+  var jd = julianDate(now);
+  // Synodic month = 29.53059 days
+  var synodicMonth = 29.53059;
+  // Known new moon: Jan 6, 2000 18:14 UTC
+  var refNewMoon = 2451550.26;
+  var phase = ((jd - refNewMoon) % synodicMonth + synodicMonth) % synodicMonth;
+  var age = phase;
+  var illumination = (1 - Math.cos(2 * Math.PI * phase / synodicMonth)) / 2 * 100;
+
+  var phaseName, phaseDesc;
+  if(age < 1.85) { phaseName = 'Nieuwe Maan'; phaseDesc = 'De maan is niet zichtbaar.'; }
+  else if(age < 7.38) { phaseName = 'Wassende Sikkel'; phaseDesc = 'Een dunne sikkel verschijnt aan de westelijke avondhemel.'; }
+  else if(age < 9.23) { phaseName = 'Eerste Kwartier'; phaseDesc = 'De rechterhelft van de maan is verlicht.'; }
+  else if(age < 13.77) { phaseName = 'Wassende Maan'; phaseDesc = 'Meer dan de helft van de maan is verlicht.'; }
+  else if(age < 15.77) { phaseName = 'Volle Maan'; phaseDesc = 'De maan is volledig verlicht en de hele nacht zichtbaar.'; }
+  else if(age < 22.15) { phaseName = 'Afnemende Maan'; phaseDesc = 'De maan wordt langzaam minder verlicht.'; }
+  else if(age < 24.00) { phaseName = 'Laatste Kwartier'; phaseDesc = 'De linkerhelft van de maan is verlicht.'; }
+  else { phaseName = 'Afnemende Sikkel'; phaseDesc = 'Een dunne sikkel verschijnt aan de oostelijke ochtendhemel.'; }
+
+  document.getElementById('moonName').textContent = phaseName;
+  document.getElementById('moonIllum').textContent = 'Verlicht: ' + illumination.toFixed(0) + '%';
+  document.getElementById('moonAge').textContent = 'Maanleeftijd: ' + age.toFixed(1) + ' dagen';
+  document.getElementById('moonDetails').textContent = phaseDesc;
+
+  // Draw moon
+  var canvas = document.getElementById('moonCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W/2, cy = H/2, r = 60;
+
+  // Glow
+  var glow = ctx.createRadialGradient(cx, cy, r-5, cx, cy, r+20);
+  glow.addColorStop(0, 'rgba(200,200,220,.1)');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r+20, 0, Math.PI*2);
+  ctx.fill();
+
+  // Dark side
+  ctx.fillStyle = '#1a1d2e';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fill();
+
+  // Lit side using clipping
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.clip();
+
+  var phaseFrac = age / synodicMonth;
+  var moonGrad = ctx.createRadialGradient(cx-10, cy-10, 5, cx, cy, r);
+  moonGrad.addColorStop(0, '#e8e4d4');
+  moonGrad.addColorStop(0.7, '#c8c4b4');
+  moonGrad.addColorStop(1, '#a8a498');
+
+  if(phaseFrac < 0.5){
+    // Waxing: lit from right
+    var terminatorX = cx + r * Math.cos(Math.PI * phaseFrac * 2);
+    ctx.fillStyle = moonGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, Math.abs(cx - terminatorX) || 1, r, 0, -Math.PI/2, Math.PI/2, phaseFrac < 0.25);
+    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, true);
+    ctx.fill();
+  } else {
+    // Waning: lit from left
+    var terminatorX = cx + r * Math.cos(Math.PI * phaseFrac * 2);
+    ctx.fillStyle = moonGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, Math.abs(cx - terminatorX) || 1, r, 0, -Math.PI/2, Math.PI/2, phaseFrac > 0.75);
+    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, false);
+    ctx.fill();
+  }
+
+  // Craters
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = '#777';
+  var craters = [[cx-15,cy-20,8],[cx+10,cy+15,6],[cx-5,cy+25,4],[cx+20,cy-10,5],[cx-25,cy+5,3]];
+  craters.forEach(function(c){
+    ctx.beginPath();
+    ctx.arc(c[0],c[1],c[2],0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+})();
+
+// ============================================================
+// ISS TRACKER
+// ============================================================
+function fetchISS(){
+  fetch('http://api.open-notify.org/iss-now.json')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var lat = parseFloat(data.iss_position.latitude);
+      var lon = parseFloat(data.iss_position.longitude);
+      document.getElementById('issLat').textContent = lat.toFixed(4) + '\u00b0';
+      document.getElementById('issLon').textContent = lon.toFixed(4) + '\u00b0';
+      document.getElementById('issUpdate').textContent = 'Laatste update: ' + new Date().toLocaleTimeString('nl-NL');
+      drawISSMap(lat, lon);
+    })
+    .catch(function(){
+      document.getElementById('issUpdate').textContent = 'Kon ISS-data niet laden. API mogelijk niet bereikbaar.';
+      // Draw map with estimated position
+      drawISSMap(0, 0);
+    });
+}
+
+function drawISSMap(issLat, issLon){
+  var canvas = document.getElementById('issMap');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  ctx.fillStyle = '#0a0e1a';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(148,163,184,.08)';
+  ctx.lineWidth = 0.5;
+  for(var lat=-60;lat<=60;lat+=30){
+    var y = H/2 - (lat/90)*H/2;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  for(var lon=-150;lon<=150;lon+=30){
+    var x = W/2 + (lon/180)*W/2;
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+
+  // Equator
+  ctx.strokeStyle = 'rgba(251,191,36,.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+
+  // Simplified continents (very basic)
+  ctx.fillStyle = 'rgba(34,197,94,.12)';
+  ctx.strokeStyle = 'rgba(34,197,94,.25)';
+  ctx.lineWidth = 0.5;
+  // Europe
+  var continents = [
+    {x:0.53,y:0.28,w:0.06,h:0.08}, // Europe
+    {x:0.50,y:0.38,w:0.08,h:0.18}, // Africa
+    {x:0.22,y:0.30,w:0.10,h:0.12}, // N America
+    {x:0.27,y:0.50,w:0.06,h:0.15}, // S America
+    {x:0.62,y:0.32,w:0.15,h:0.12}, // Asia
+    {x:0.75,y:0.55,w:0.06,h:0.06}, // Australia
+  ];
+  continents.forEach(function(c){
+    ctx.fillRect(c.x*W, c.y*H, c.w*W, c.h*H);
+    ctx.strokeRect(c.x*W, c.y*H, c.w*W, c.h*H);
+  });
+
+  // Netherlands marker
+  var nlX = W/2 + (4.9/180)*W/2;
+  var nlY = H/2 - (52.4/90)*H/2;
+  ctx.fillStyle = '#22c55e';
+  ctx.beginPath();ctx.arc(nlX,nlY,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle = '#22c55e';
+  ctx.font = '9px "DM Sans"';
+  ctx.textAlign = 'left';
+  ctx.fillText('NL', nlX+6, nlY+3);
+
+  // ISS position
+  var issX = W/2 + (issLon/180)*W/2;
+  var issY = H/2 - (issLat/90)*H/2;
+
+  // ISS glow
+  var issGlow = ctx.createRadialGradient(issX, issY, 2, issX, issY, 20);
+  issGlow.addColorStop(0, 'rgba(6,182,212,.6)');
+  issGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = issGlow;
+  ctx.beginPath();ctx.arc(issX,issY,20,0,Math.PI*2);ctx.fill();
+
+  ctx.fillStyle = '#06b6d4';
+  ctx.beginPath();ctx.arc(issX,issY,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '10px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('ISS', issX, issY - 10);
+
+  // Labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = '9px "Space Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('0\u00b0', W/2, H-4);
+  ctx.fillText('180\u00b0W', 30, H-4);
+  ctx.fillText('180\u00b0O', W-30, H-4);
+}
+
+fetchISS();
+setInterval(fetchISS, 10000);
+
+// ============================================================
+// METEOR SHOWERS
+// ============================================================
+(function(){
+  var showers = [
+    {name:'Quadrantiden', peak:'3-4 jan', period:'28 dec - 12 jan', rate:'120', radiant:'Bootes', peakMonth:0, peakDay:3},
+    {name:'Lyriden', peak:'22-23 apr', period:'16-25 apr', rate:'18', radiant:'Lier', peakMonth:3, peakDay:22},
+    {name:'Eta Aquariden', peak:'6-7 mei', period:'19 apr - 28 mei', rate:'50', radiant:'Waterman', peakMonth:4, peakDay:6},
+    {name:'Delta Aquariden', peak:'30-31 jul', period:'12 jul - 23 aug', rate:'25', radiant:'Waterman', peakMonth:6, peakDay:30},
+    {name:'Perseiden', peak:'12-13 aug', period:'17 jul - 24 aug', rate:'100', radiant:'Perseus', peakMonth:7, peakDay:12},
+    {name:'Draconiden', peak:'8-9 okt', period:'6-10 okt', rate:'10', radiant:'Draak', peakMonth:9, peakDay:8},
+    {name:'Orioniden', peak:'21-22 okt', period:'2 okt - 7 nov', rate:'20', radiant:'Orion', peakMonth:9, peakDay:21},
+    {name:'Tauriden', peak:'4-5 nov', period:'25 sep - 25 nov', rate:'5', radiant:'Stier', peakMonth:10, peakDay:4},
+    {name:'Leoniden', peak:'17-18 nov', period:'6-30 nov', rate:'15', radiant:'Leeuw', peakMonth:10, peakDay:17},
+    {name:'Geminiden', peak:'14-15 dec', period:'4-17 dec', rate:'150', radiant:'Tweelingen', peakMonth:11, peakDay:14},
+    {name:'Ursiden', peak:'22-23 dec', period:'17-26 dec', rate:'10', radiant:'Kleine Beer', peakMonth:11, peakDay:22}
+  ];
+
+  var tbody = document.getElementById('meteorTable');
+  var now = new Date();
+  var currentMonth = now.getMonth();
+  var currentDay = now.getDate();
+
+  showers.forEach(function(s){
+    var isNear = Math.abs(s.peakMonth - currentMonth) <= 1 || (s.peakMonth === 0 && currentMonth === 11) || (s.peakMonth === 11 && currentMonth === 0);
+    var isPeak = s.peakMonth === currentMonth && Math.abs(s.peakDay - currentDay) <= 3;
+    var status = isPeak ? 'ACTIEF!' : (isNear ? 'Binnenkort' : 'Wachtend');
+    var statusColor = isPeak ? 'var(--gold)' : (isNear ? 'var(--green)' : 'var(--tx3)');
+
+    var tr = document.createElement('tr');
+    if(isPeak) tr.className = 'active-shower';
+    tr.innerHTML =
+      '<td'+(isPeak?' style="color:var(--gold);font-weight:700"':'')+'>' + s.name + '</td>' +
+      '<td>' + s.peak + '</td>' +
+      '<td>' + s.period + '</td>' +
+      '<td style="font:12px var(--mono);color:var(--cyan)">' + s.rate + '</td>' +
+      '<td>' + s.radiant + '</td>' +
+      '<td style="color:'+statusColor+';font-weight:600">' + status + '</td>';
+    tbody.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>

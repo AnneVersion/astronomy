@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sterrenhemel Foto's — Sterrenhemel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='none' stroke='%2339ff14' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2339ff14' opacity='.4'/><ellipse cx='16' cy='16' rx='14' ry='5' fill='none' stroke='%2339ff14' stroke-width='.7' opacity='.4' transform='rotate(-8 16 16)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080f;--bg2:#0c1022;--bg3:#131833;
+  --surface:rgba(19,24,51,.7);--glass:rgba(19,24,51,.45);--glass-bd:rgba(148,163,184,.12);
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --gold:#fbbf24;--blue:#3b82f6;--purple:#a855f7;--red:#ef4444;--green:#22c55e;--cyan:#06b6d4;
+  --r:14px;--rs:8px;--font:'DM Sans',system-ui,sans-serif;--mono:'Space Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(148,163,184,.2);border-radius:10px}
+a{color:var(--blue);text-decoration:none}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:-4px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(168,85,247,.05) 0%,transparent 50%);pointer-events:none;z-index:0}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+.star-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star-bg i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite;animation-delay:var(--dl,0s);opacity:.3}
+.top{position:sticky;top:0;z-index:100;background:rgba(6,8,15,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-bd);padding:0 20px}
+.top-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:50px;gap:12px}
+.logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px;color:var(--gold)}
+.logo .mi{font-size:22px}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:var(--rs);font:600 12px var(--font);color:var(--tx3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;border:none;background:none;text-decoration:none;white-space:nowrap}
+.tab:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tab.active{color:var(--gold);background:rgba(251,191,36,.08)}
+.tab .mi{font-size:16px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--glass-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.btn{padding:8px 16px;border-radius:var(--rs);font:600 12px var(--font);cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-gold{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(251,191,36,.1));color:var(--gold);border:1px solid rgba(251,191,36,.25)}
+.btn-gold:hover{background:linear-gradient(135deg,rgba(251,191,36,.3),rgba(251,191,36,.15));transform:translateY(-1px)}
+
+/* APOD specific */
+.apod-image{width:100%;border-radius:var(--r);margin-bottom:16px;max-height:70vh;object-fit:contain;background:#000;cursor:pointer}
+.apod-image:hover{opacity:.95}
+.apod-title{font:700 22px var(--font);color:var(--gold);margin-bottom:4px}
+.apod-date{font:12px var(--mono);color:var(--tx3);margin-bottom:12px}
+.apod-explanation{font:13px var(--font);color:var(--tx2);line-height:1.8;max-height:200px;overflow-y:auto;padding-right:8px}
+.apod-nav{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+
+.archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:16px}
+.archive-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .3s}
+.archive-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.archive-card img{width:100%;height:180px;object-fit:cover}
+.archive-card .info{padding:10px}
+.archive-card .info h3{font:600 12px var(--font);color:var(--tx);margin-bottom:2px}
+.archive-card .info p{font:10px var(--mono);color:var(--tx3)}
+
+.loading{text-align:center;padding:40px;color:var(--tx3);font:14px var(--font)}
+.loading::after{content:'';display:inline-block;width:16px;height:16px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-left:8px;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.error-msg{text-align:center;padding:40px;color:var(--red);font:14px var(--font);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:var(--r)}
+
+@media(max-width:768px){
+  .tabs{white-space:nowrap}
+  .tab{font-size:11px;padding:5px 10px}
+  .archive-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="star-bg" id="starsBg"></div>
+
+<div class="top">
+  <div class="top-inner">
+    <a href="index.html" class="logo" style="text-decoration:none"><span class="mi">auto_awesome</span> Sterrenhemel</a>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <a class="tab" href="index.html"><span class="mi">nightlight</span> Sterrenkaart</a>
+      <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
+      <a class="tab" href="hemel.html"><span class="mi">visibility</span> Live Hemel</a>
+      <a class="tab" href="zonnestelsel.html"><span class="mi">blur_circular</span> Zonnestelsel</a>
+      <a class="tab active" href="fotos.html"><span class="mi">photo_camera</span> Foto's</a>
+      <a class="tab" href="missies.html"><span class="mi">satellite_alt</span> Missies</a>
+      <a class="tab" href="donkerehemel.html"><span class="mi">dark_mode</span> Donkere Hemel</a>
+      <a class="tab" href="explorer.html"><span class="mi">explore</span> Explorer</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Today's APOD -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--gold)">photo_camera</span> NASA Astronomie Foto van de Dag</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Elke dag selecteert NASA een spectaculaire foto van het universum, met uitleg van een professionele astronoom.</p>
+
+    <div class="apod-nav">
+      <button class="btn btn-gold" onclick="loadAPOD('prev')"><span class="mi" style="font-size:14px">chevron_left</span> Vorige</button>
+      <button class="btn btn-gold" onclick="loadAPOD('today')"><span class="mi" style="font-size:14px">today</span> Vandaag</button>
+      <button class="btn btn-gold" onclick="loadAPOD('next')"><span class="mi" style="font-size:14px">chevron_right</span> Volgende</button>
+      <input type="date" id="apodDatePicker" onchange="loadAPODDate(this.value)" style="padding:6px 10px;background:var(--bg2);border:1px solid var(--glass-bd);border-radius:var(--rs);color:var(--tx);font:12px var(--mono)">
+    </div>
+
+    <div id="apodContent">
+      <div class="loading">Foto laden...</div>
+    </div>
+  </div>
+
+  <!-- Archive -->
+  <div class="card">
+    <h2><span class="mi" style="color:var(--purple)">collections</span> Recente Foto's</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De afgelopen week in de ruimte.</p>
+    <div class="archive-grid" id="archiveGrid">
+      <div class="loading">Archief laden...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Stars
+(function(){
+  var bg = document.getElementById('starsBg');
+  for(var i=0;i<80;i++){
+    var s = document.createElement('i');
+    s.style.cssText = 'left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(2+Math.random()*4)+'s;--dl:'+(Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px';
+    bg.appendChild(s);
+  }
+})();
+
+var API_KEY = 'DEMO_KEY';
+var currentDate = new Date().toISOString().split('T')[0];
+var apodCache = {};
+
+function formatDateNL(dateStr){
+  var d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+}
+
+function loadAPOD(direction){
+  var d = new Date(currentDate + 'T12:00:00');
+  if(direction === 'prev') d.setDate(d.getDate() - 1);
+  else if(direction === 'next') d.setDate(d.getDate() + 1);
+  else d = new Date();
+
+  var today = new Date();
+  if(d > today) d = today;
+  if(d < new Date('1995-06-16')) d = new Date('1995-06-16');
+
+  currentDate = d.toISOString().split('T')[0];
+  document.getElementById('apodDatePicker').value = currentDate;
+  fetchAPOD(currentDate);
+}
+
+function loadAPODDate(dateStr){
+  if(!dateStr) return;
+  currentDate = dateStr;
+  fetchAPOD(dateStr);
+}
+
+function fetchAPOD(date){
+  if(apodCache[date]){
+    renderAPOD(apodCache[date]);
+    return;
+  }
+
+  document.getElementById('apodContent').innerHTML = '<div class="loading">Foto laden...</div>';
+
+  fetch('https://api.nasa.gov/planetary/apod?api_key='+API_KEY+'&date='+date)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error){
+        document.getElementById('apodContent').innerHTML = '<div class="error-msg">Fout: '+data.error.message+'</div>';
+        return;
+      }
+      apodCache[date] = data;
+      renderAPOD(data);
+    })
+    .catch(function(err){
+      document.getElementById('apodContent').innerHTML = '<div class="error-msg">Kon de foto niet laden. Controleer je internetverbinding of probeer het later opnieuw.<br><br>Fout: '+err.message+'</div>';
+    });
+}
+
+function renderAPOD(data){
+  var container = document.getElementById('apodContent');
+  var html = '';
+
+  if(data.media_type === 'image'){
+    html += '<img class="apod-image" src="'+data.url+'" alt="'+data.title+'" onclick="window.open(\''+(data.hdurl||data.url)+'\',\'_blank\')" title="Klik voor HD versie">';
+  } else if(data.media_type === 'video'){
+    html += '<div style="position:relative;padding-bottom:56.25%;height:0;margin-bottom:16px;border-radius:var(--r);overflow:hidden">';
+    html += '<iframe src="'+data.url+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe>';
+    html += '</div>';
+  }
+
+  html += '<div class="apod-title">' + data.title + '</div>';
+  html += '<div class="apod-date">' + formatDateNL(data.date);
+  if(data.copyright) html += ' | \u00a9 ' + data.copyright;
+  html += '</div>';
+  html += '<div class="apod-explanation">' + data.explanation + '</div>';
+
+  if(data.hdurl){
+    html += '<a href="'+data.hdurl+'" target="_blank" class="btn btn-gold" style="margin-top:12px"><span class="mi" style="font-size:14px">open_in_new</span> HD Versie</a>';
+  }
+
+  container.innerHTML = html;
+}
+
+// Load archive (last 7 days)
+function loadArchive(){
+  var end = new Date();
+  var start = new Date();
+  start.setDate(start.getDate() - 7);
+
+  var startStr = start.toISOString().split('T')[0];
+  var endStr = end.toISOString().split('T')[0];
+
+  fetch('https://api.nasa.gov/planetary/apod?api_key='+API_KEY+'&start_date='+startStr+'&end_date='+endStr)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!Array.isArray(data)){
+        document.getElementById('archiveGrid').innerHTML = '<div class="error-msg">Kon archief niet laden.</div>';
+        return;
+      }
+      var grid = document.getElementById('archiveGrid');
+      grid.innerHTML = '';
+      data.reverse().forEach(function(item){
+        apodCache[item.date] = item;
+        var card = document.createElement('div');
+        card.className = 'archive-card';
+        card.onclick = function(){
+          currentDate = item.date;
+          document.getElementById('apodDatePicker').value = item.date;
+          renderAPOD(item);
+          window.scrollTo({top:0, behavior:'smooth'});
+        };
+
+        var imgUrl = item.media_type === 'image' ? item.url : '';
+        card.innerHTML =
+          (imgUrl ? '<img src="'+imgUrl+'" alt="'+item.title+'" loading="lazy">' : '<div style="height:180px;background:var(--bg2);display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:40px;color:var(--tx3)">play_circle</span></div>') +
+          '<div class="info"><h3>'+item.title+'</h3><p>'+formatDateNL(item.date)+'</p></div>';
+        grid.appendChild(card);
+      });
+    })
+    .catch(function(){
+      document.getElementById('archiveGrid').innerHTML = '<div class="error-msg">Kon archief niet laden.</div>';
+    });
+}
+
+// Init
+document.getElementById('apodDatePicker').value = currentDate;
+fetchAPOD(currentDate);
+loadArchive();
+</script>
+</body>
+</html>
