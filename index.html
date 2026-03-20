@@ -1174,8 +1174,8 @@ function animateSky(){
   });
 
   // Shooting stars
-  // Spawn new one randomly (~every 6 seconds)
-  if(Math.random() < dt / 6){
+  // Spawn new one rarely (~every 30 seconds), max 1 at a time
+  if(_shootingStars.length < 1 && Math.random() < dt / 30){
     var startX = Math.random() * W * 0.8 + W * 0.1;
     var startY = Math.random() * H * 0.4;
     var angle = (0.5 + Math.random() * 0.5) * Math.PI; // downward-ish
