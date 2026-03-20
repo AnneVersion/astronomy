@@ -72,6 +72,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .row{flex-direction:column}
   .col{min-width:0}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -111,7 +116,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <button class="btn btn-gold" id="btnOrbits" onclick="toggleOrbits()"><span class="mi" style="font-size:14px">trip_origin</span> Banen</button>
     </div>
     <canvas id="solarCanvas" width="1000" height="700" style="width:100%;border-radius:var(--rs);cursor:pointer;background:#030510"></canvas>
-    <p style="font:10px var(--mono);color:var(--tx3);margin-top:8px">Klik op een planeet voor informatie. Scroll om in/uit te zoomen.</p>
+    <p style="font:10px var(--mono);color:var(--tx3);margin-top:8px">Klik op een planeet voor informatie. Scroll om in/uit te zoomen. Afstanden in <span class="astro-tooltip" data-tooltip="1 AU (Astronomische Eenheid) = de gemiddelde afstand van de aarde tot de zon: 149.597.870,7 km.">AU</span>.</p>
   </div>
 
   <!-- Planet Info Popup -->

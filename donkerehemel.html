@@ -87,6 +87,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .bortle-scale{flex-wrap:wrap}
   .bortle-item{min-width:50px}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -116,7 +121,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Intro -->
   <div class="card">
     <h2><span class="mi" style="color:var(--purple)">dark_mode</span> Donkere Hemel Kaart Nederland</h2>
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:16px">Nederland is een van de meest lichtvervuilde landen ter wereld. Toch zijn er plekken waar je de Melkweg nog kunt zien. Deze kaart toont de lichtvervuiling en de beste plekken om sterren te kijken.</p>
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:16px">Nederland is een van de meest lichtvervuilde landen ter wereld. Toch zijn er plekken waar je de Melkweg nog kunt zien. Deze kaart toont de lichtvervuiling en de beste plekken om sterren te kijken. De helderheid wordt gemeten met de <span class="astro-tooltip" data-tooltip="De helderheid van een ster. Hoe lager het getal, hoe helderder. Sirius = -1.46, zwakste zichtbaar met blote oog = +6.">magnitude</span>-schaal.</p>
 
     <!-- Bortle Scale -->
     <h3>Bortle-schaal voor Lichtvervuiling</h3>

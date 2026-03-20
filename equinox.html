@@ -88,6 +88,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .event-grid{grid-template-columns:1fr}
   .golden-times{grid-template-columns:1fr 1fr}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -126,7 +131,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Event Countdown Grid -->
   <div class="card">
     <h2><span class="mi" style="color:var(--gold)">event</span> Astronomische Seizoenen</h2>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Equinoxen en zonnewenden markeren het begin van de astronomische seizoenen. De aardas staat 23,5 graden scheef, waardoor we seizoenen hebben.</p>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px"><span class="astro-tooltip" data-tooltip="Het moment waarop de zon precies boven de evenaar staat. Dag en nacht zijn dan overal op aarde even lang.">Equinoxen</span> en <span class="astro-tooltip" data-tooltip="Het moment waarop de zon het verst van de evenaar staat. Langste of kortste dag van het jaar.">zonnewenden</span> markeren het begin van de astronomische seizoenen. De aardas staat 23,5 graden scheef ten opzichte van de <span class="astro-tooltip" data-tooltip="De denkbeeldige lijn die de baan van de zon langs de sterrenhemel volgt.">ecliptica</span>, waardoor we seizoenen hebben.</p>
     <div class="event-grid" id="eventGrid"></div>
   </div>
 
@@ -164,7 +169,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Day Length Through Year -->
   <div class="card">
     <h2><span class="mi" style="color:var(--green)">show_chart</span> Daglengte Door Het Jaar</h2>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De daglengte in Nederland (52°N) varieert van ~7,5 uur in december tot ~16,5 uur in juni. Een sinusvormig patroon veroorzaakt door de helling van de aardas.</p>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De daglengte in Nederland (52 N) varieert van ~7,5 uur bij de <span class="astro-tooltip" data-tooltip="Het moment waarop de zon het verst van de evenaar staat. Langste of kortste dag van het jaar.">winterzonnewende</span> tot ~16,5 uur bij de <span class="astro-tooltip" data-tooltip="Het moment waarop de zon het verst van de evenaar staat. Langste of kortste dag van het jaar.">zomerzonnewende</span>. Een sinusvormig patroon veroorzaakt door de helling van de aardas (23,44 graden).</p>
     <div class="chart-container">
       <canvas id="dayLengthCanvas" width="900" height="300" style="width:100%;border-radius:var(--rs)"></canvas>
     </div>
@@ -329,7 +334,7 @@ function formatTime(h){
       '<div class="event-emoji"><span class="mi" style="font-size:36px;color:' + e.color + '">' + e.icon + '</span></div>' +
       '<div class="event-name">' + e.name + '</div>' +
       '<div class="event-date">' + evDate.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'}) + '</div>' +
-      '<div class="event-countdown" style="color:' + e.color + '">' + (isToday ? 'VANDAAG!' : diff + ' dagen') + '</div>' +
+      '<div class="event-countdown" style="color:' + e.color + '">' + (isToday ? 'VANDAAG' : diff + ' dagen') + '</div>' +
       '<div class="event-desc">' + e.desc + '</div>';
     grid.appendChild(card);
   });

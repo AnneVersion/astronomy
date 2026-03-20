@@ -77,6 +77,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .planet-grid{grid-template-columns:1fr 1fr}
   .moon-display{flex-direction:column;align-items:center}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -106,7 +111,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Current Sky Status -->
   <div class="card">
     <h2><span class="mi" style="color:var(--cyan)">visibility</span> Live Hemel boven Nederland</h2>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Wat er nu zichtbaar is aan de hemel boven Nederland (52.4°N, 4.9°O). Bijgewerkt op <span id="updateTime" style="color:var(--gold)"></span></p>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:8px">Wat er nu zichtbaar is aan de hemel boven Nederland (52.4 N, 4.9 O). Berekend met <span class="astro-tooltip" data-tooltip="3.26 lichtjaar. Gebruikt door astronomen als standaard afstandsmaat.">astronomische</span> <span class="astro-tooltip" data-tooltip="De Juliaanse datum is een doorlopende telling van dagen sinds 1 januari 4713 v.Chr. Astronomen gebruiken dit systeem om berekeningen te vereenvoudigen.">Juliaanse datum</span> en lokale <span class="astro-tooltip" data-tooltip="De sterrentijd is gebaseerd op de rotatie van de aarde ten opzichte van de sterren, niet de zon. Een sterrendag is ~4 minuten korter dan een zonnedag.">sterrentijd</span>. Bijgewerkt op <span id="updateTime" style="color:var(--gold)"></span></p>
     <div id="skyStatus" style="font:12px var(--mono);color:var(--tx2);padding:8px;background:var(--bg2);border-radius:var(--rs);margin-bottom:16px"></div>
   </div>
 
@@ -153,7 +158,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Meteor Showers -->
   <div class="card">
     <h2><span class="mi" style="color:var(--purple)">star_rate</span> Meteorenregenkalender 2026</h2>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De belangrijkste meteorenregens van het jaar. Bij helder weer en weinig lichtvervuiling zijn ze met het blote oog zichtbaar.</p>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:12px">De belangrijkste meteorenregens van het jaar. Bij helder weer en weinig lichtvervuiling zijn ze met het blote oog zichtbaar. Het <span class="astro-tooltip" data-tooltip="Het punt aan de hemel waar de meteoren vandaan lijken te komen. Genoemd naar het sterrenbeeld waarin dit punt ligt.">radiant</span> geeft aan waar de meteoren vandaan lijken te komen.</p>
     <table class="meteor-table">
       <thead><tr><th>Naam</th><th>Piek</th><th>Periode</th><th>Aantal/uur</th><th>Radiant</th><th>Status</th></tr></thead>
       <tbody id="meteorTable"></tbody>
@@ -510,7 +515,7 @@ setInterval(fetchISS, 10000);
   showers.forEach(function(s){
     var isNear = Math.abs(s.peakMonth - currentMonth) <= 1 || (s.peakMonth === 0 && currentMonth === 11) || (s.peakMonth === 11 && currentMonth === 0);
     var isPeak = s.peakMonth === currentMonth && Math.abs(s.peakDay - currentDay) <= 3;
-    var status = isPeak ? 'ACTIEF!' : (isNear ? 'Binnenkort' : 'Wachtend');
+    var status = isPeak ? 'ACTIEF' : (isNear ? 'Binnenkort' : 'Wachtend');
     var statusColor = isPeak ? 'var(--gold)' : (isNear ? 'var(--green)' : 'var(--tx3)');
 
     var tr = document.createElement('tr');

@@ -82,6 +82,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .mission-grid{grid-template-columns:1fr}
   .voyager-distance{font-size:24px}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -111,7 +116,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Voyager Distance Counter -->
   <div class="card voyager-banner">
     <h2 style="justify-content:center"><span class="mi" style="color:var(--purple)">rocket_launch</span> Voyager 1 - Het Verst Verwijderde Menselijke Object</h2>
-    <p style="font-size:13px;color:var(--tx2);max-width:600px;margin:0 auto 8px">Gelanceerd op 5 september 1977. Reist met 17 km/s door de interstellaire ruimte.</p>
+    <p style="font-size:13px;color:var(--tx2);max-width:600px;margin:0 auto 8px">Gelanceerd op 5 september 1977. Reist met 17 km/s door de <span class="astro-tooltip" data-tooltip="De ruimte tussen de sterren. Voyager 1 verliet de heliosfeer (de invloedssfeer van de zonnewind) in augustus 2012 en reist nu door het interstellaire medium.">interstellaire ruimte</span>.</p>
     <div class="voyager-distance" id="voyager1Dist">Laden...</div>
     <div class="voyager-sub" id="voyager1Sub"></div>
     <div style="display:flex;justify-content:center;gap:24px;margin-top:16px;flex-wrap:wrap">
@@ -125,7 +130,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <!-- Active Missions -->
   <div class="card">
     <h2><span class="mi" style="color:var(--green)">rocket</span> Actieve Ruimtemissies</h2>
-    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Een overzicht van de belangrijkste actieve en geplande ruimtemissies.</p>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">Een overzicht van de belangrijkste actieve en geplande ruimtemissies. Afstanden in <span class="astro-tooltip" data-tooltip="De afstand die licht aflegt in een jaar: 9.461 biljoen kilometer.">lichtjaar</span> en <span class="astro-tooltip" data-tooltip="1 AU (Astronomische Eenheid) = de gemiddelde afstand van de aarde tot de zon: 149.597.870,7 km.">AU</span>.</p>
     <div class="mission-grid" id="missionGrid"></div>
   </div>
 

@@ -236,6 +236,11 @@ body::before{content:'';position:fixed;inset:0;background:
   .gw-events{grid-template-columns:1fr}
   .element-grid{grid-template-columns:repeat(4,1fr)}
 }
+
+/* Scientific tooltips */
+.astro-tooltip{position:relative;border-bottom:1px dotted var(--gold);cursor:help;color:var(--tx)}
+.astro-tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(6,8,15,.96);backdrop-filter:blur(12px);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:10px 14px;font:12px var(--font);color:var(--tx2);line-height:1.5;white-space:normal;width:max-content;max-width:320px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none}
+.astro-tooltip:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(251,191,36,.25);z-index:301;pointer-events:none}
 </style>
 </head>
 <body>
@@ -1254,26 +1259,26 @@ function renderShiftedSpectrum(z){
 // ============================
 function initTimeline(){
   const events=[
-    {time:'0 — Oerknal',ago:'13,8 miljard jaar',temp:'10\u00b3\u00b2 K',icon:'\uD83D\uDCA5',title:'De Oerknal',desc:'Alle materie, energie, ruimte en tijd ontstaan vanuit een oneindig dicht en heet punt — een singulariteit. Het universum begint zich uit te zetten.',major:true},
-    {time:'10\u207b\u00b3\u00b6 seconde',ago:'13,8 miljard jaar',temp:'10\u00b2\u2078 K',icon:'\u26A1',title:'Inflatie',desc:'Het universum ondergaat een exponentieel snelle uitbreiding. In een fractie van een seconde groeit het van kleiner dan een atoom tot groter dan het waarneembare universum.',major:true},
-    {time:'3 minuten',ago:'13,8 miljard jaar',temp:'10\u2079 K',icon:'\u2699\uFE0F',title:'Nucleosynthese',desc:'De eerste atoomkernen vormen: waterstof, helium en sporen lithium. De chemische samenstelling van het universum wordt vastgelegd.'},
-    {time:'380.000 jaar',ago:'13,799 miljard jaar',temp:'3.000 K',icon:'\uD83D\uDCA1',title:'Eerste Licht — Recombinatie',desc:'Elektronen binden zich aan kernen en vormen neutrale atomen. Het universum wordt transparant. Dit licht zien we nu als de kosmische achtergrondstraling (CMB).',major:true},
-    {time:'200 miljoen jaar',ago:'13,6 miljard jaar',temp:'60 K',icon:'\u2B50',title:'Eerste Sterren',desc:'De "Kosmische Dageraad" — reusachtige sterren van zuiver waterstof en helium ontstaan. Ze zijn 100-1000x zwaarder dan de zon en leven slechts enkele miljoenen jaren.',major:true},
-    {time:'400 miljoen jaar',ago:'13,4 miljard jaar',temp:'40 K',icon:'\uD83C\uDF00',title:'Eerste Sterrenstelsels',desc:'Zwaartekracht trekt materie samen tot de eerste primitieve sterrenstelsels. James Webb Space Telescope heeft deze vroege stelsels waargenomen.'},
-    {time:'1 miljard jaar',ago:'12,8 miljard jaar',temp:'20 K',icon:'\uD83D\uDD73\uFE0F',title:'Supermassieve Zwarte Gaten',desc:'In de centra van sterrenstelsels groeien zwarte gaten door het verslinken van gas en andere sterren. Actieve quasars zijn de helderste objecten in het universum.'},
-    {time:'4,6 miljard jaar',ago:'9,2 miljard jaar',temp:'2,7 K',icon:'\u2600\uFE0F',title:'Ons Zonnestelsel Vormt',desc:'Een wolk van gas en stof stort in en vormt de Zon. Overgebleven materiaal klontert samen tot planeten, asteroiden en kometen.',major:true},
-    {time:'4,5 miljard jaar',ago:'9,3 miljard jaar',temp:'2,7 K',icon:'\uD83C\uDF0D',title:'Aarde Ontstaat',desc:'De proto-Aarde groeit door botsingen van planetesimalen. Een botsing met een Mars-groot object schept de Maan. De oceanen vullen zich met water gebracht door kometen.'},
-    {time:'3,8 miljard jaar',ago:'10 miljard jaar',temp:'2,7 K',icon:'\uD83E\uDDA0',title:'Eerste Leven',desc:'De eerste eencellige organismen verschijnen in de oer-oceanen. Het leven op Aarde is begonnen — de langste ononderbroken chemische reactie in de geschiedenis.',major:true},
-    {time:'540 miljoen jaar geleden',ago:'540 miljoen jaar',temp:'2,7 K',icon:'\uD83D\uDC1A',title:'Cambrische Explosie',desc:'Een plotselinge explosie van complexe meercellige levensvormen. Bijna alle hedendaagse diergroepen verschijnen in relatief korte tijd.'},
-    {time:'66 miljoen jaar geleden',ago:'66 miljoen jaar',temp:'2,7 K',icon:'\u2604\uFE0F',title:'Dinosaurussen Uitgestorven',desc:'Een asteroide van 10 km treft de Aarde bij Chicxulub, Mexico. 75% van alle soorten sterft uit. Zoogdieren nemen de vrijgekomen niches over.'},
-    {time:'300.000 jaar geleden',ago:'300.000 jaar',temp:'2,7 K',icon:'\uD83E\uDDCD',title:'Homo Sapiens',desc:'De moderne mens verschijnt in Afrika. We beginnen gereedschap te maken, kunst te creeren en de sterren te bestuderen.',major:true},
-    {time:'2015',ago:'11 jaar',temp:'2,725 K',icon:'\uD83C\uDF0A',title:'Eerste Zwaartekrachtsgolven',desc:'LIGO detecteert voor het eerst zwaartekrachtsgolven — rimpelingen in de ruimtetijd voorspeld door Einstein in 1916. Een nieuw venster op het universum opent zich.'},
-    {time:'Nu',ago:'Heden',temp:'2,725 K',icon:'\uD83D\uDD2D',title:'Vandaag',desc:'Het universum is 13,8 miljard jaar oud, 93 miljard lichtjaar in diameter, en bevat 2 biljoen sterrenstelsels. En het breidt nog steeds versneld uit.',major:true}
+    {time:'0 — Oerknal',ago:'13,8 miljard jaar',temp:'10\u00b3\u00b2 K',miIcon:'flare',title:'De Oerknal',desc:'Alle materie, energie, ruimte en tijd ontstaan vanuit een oneindig dicht en heet punt — een singulariteit. Het universum begint zich uit te zetten.',major:true},
+    {time:'10\u207b\u00b3\u00b6 seconde',ago:'13,8 miljard jaar',temp:'10\u00b2\u2078 K',miIcon:'bolt',title:'Inflatie',desc:'Het universum ondergaat een exponentieel snelle uitbreiding. In een fractie van een seconde groeit het van kleiner dan een atoom tot groter dan het waarneembare universum.',major:true},
+    {time:'3 minuten',ago:'13,8 miljard jaar',temp:'10\u2079 K',miIcon:'settings',title:'Nucleosynthese',desc:'De eerste atoomkernen vormen: waterstof, helium en sporen lithium. De chemische samenstelling van het universum wordt vastgelegd.'},
+    {time:'380.000 jaar',ago:'13,799 miljard jaar',temp:'3.000 K',miIcon:'lightbulb',title:'Eerste Licht — Recombinatie',desc:'Elektronen binden zich aan kernen en vormen neutrale atomen. Het universum wordt transparant. Dit licht zien we nu als de kosmische achtergrondstraling (CMB).',major:true},
+    {time:'200 miljoen jaar',ago:'13,6 miljard jaar',temp:'60 K',miIcon:'star',title:'Eerste Sterren',desc:'De "Kosmische Dageraad" — reusachtige sterren van zuiver waterstof en helium ontstaan. Ze zijn 100-1000x zwaarder dan de zon en leven slechts enkele miljoenen jaren.',major:true},
+    {time:'400 miljoen jaar',ago:'13,4 miljard jaar',temp:'40 K',miIcon:'blur_on',title:'Eerste Sterrenstelsels',desc:'Zwaartekracht trekt materie samen tot de eerste primitieve sterrenstelsels. James Webb Space Telescope heeft deze vroege stelsels waargenomen.'},
+    {time:'1 miljard jaar',ago:'12,8 miljard jaar',temp:'20 K',miIcon:'lens_blur',title:'Supermassieve Zwarte Gaten',desc:'In de centra van sterrenstelsels groeien zwarte gaten door het verslinken van gas en andere sterren. Actieve quasars zijn de helderste objecten in het universum.'},
+    {time:'4,6 miljard jaar',ago:'9,2 miljard jaar',temp:'2,7 K',miIcon:'light_mode',title:'Ons Zonnestelsel Vormt',desc:'Een wolk van gas en stof stort in en vormt de Zon. Overgebleven materiaal klontert samen tot planeten, asteroiden en kometen.',major:true},
+    {time:'4,5 miljard jaar',ago:'9,3 miljard jaar',temp:'2,7 K',miIcon:'public',title:'Aarde Ontstaat',desc:'De proto-Aarde groeit door botsingen van planetesimalen. Een botsing met een Mars-groot object schept de Maan. De oceanen vullen zich met water gebracht door kometen.'},
+    {time:'3,8 miljard jaar',ago:'10 miljard jaar',temp:'2,7 K',miIcon:'biotech',title:'Eerste Leven',desc:'De eerste eencellige organismen verschijnen in de oer-oceanen. Het leven op Aarde is begonnen — de langste ononderbroken chemische reactie in de geschiedenis.',major:true},
+    {time:'540 miljoen jaar geleden',ago:'540 miljoen jaar',temp:'2,7 K',miIcon:'diversity_3',title:'Cambrische Explosie',desc:'Een plotselinge explosie van complexe meercellige levensvormen. Bijna alle hedendaagse diergroepen verschijnen in relatief korte tijd.'},
+    {time:'66 miljoen jaar geleden',ago:'66 miljoen jaar',temp:'2,7 K',miIcon:'crisis_alert',title:'Dinosaurussen Uitgestorven',desc:'Een asteroide van 10 km treft de Aarde bij Chicxulub, Mexico. 75% van alle soorten sterft uit. Zoogdieren nemen de vrijgekomen niches over.'},
+    {time:'300.000 jaar geleden',ago:'300.000 jaar',temp:'2,7 K',miIcon:'person',title:'Homo Sapiens',desc:'De moderne mens verschijnt in Afrika. We beginnen gereedschap te maken, kunst te creeren en de sterren te bestuderen.',major:true},
+    {time:'2015',ago:'11 jaar',temp:'2,725 K',miIcon:'waves',title:'Eerste Zwaartekrachtsgolven',desc:'LIGO detecteert voor het eerst zwaartekrachtsgolven — rimpelingen in de ruimtetijd voorspeld door Einstein in 1916. Een nieuw venster op het universum opent zich.'},
+    {time:'Nu',ago:'Heden',temp:'2,725 K',miIcon:'telescope',title:'Vandaag',desc:'Het universum is 13,8 miljard jaar oud, 93 miljard lichtjaar in diameter, en bevat 2 biljoen sterrenstelsels. En het breidt nog steeds versneld uit.',major:true}
   ];
 
   document.getElementById('timelineContainer').innerHTML=events.map(e=>
     `<div class="timeline-event${e.major?' major':''}">
-      <div class="te-icon">${e.icon}</div>
+      <div class="te-icon"><span class="mi" style="font-size:28px">${e.miIcon}</span></div>
       <div class="te-time">${e.time}</div>
       <div class="te-temp">T \u2248 ${e.temp}</div>
       <h3>${e.title}</h3>
