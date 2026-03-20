@@ -175,8 +175,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <div class="spacer"></div>
     <div class="tabs">
       <button class="tab active" onclick="showPanel('sky')"><span class="mi">nightlight</span> Sterrenkaart</button>
-      <button class="tab" onclick="showPanel('horoscope')"><span class="mi">stars</span> Geboortedatum</button>
-      <button class="tab" onclick="showPanel('precessie')"><span class="mi">public</span> Precessie</button>
+      <button class="tab" onclick="showPanel('horoscope')"><span class="mi">stars</span> Geboortedatum &amp; Precessie</button>
       <button class="tab" onclick="showPanel('planeten')"><span class="mi">rocket</span> Planeten</button>
       <span style="width:1px;height:20px;background:var(--glass-bd);margin:0 4px"></span>
       <a class="tab" href="equinox.html"><span class="mi">wb_sunny</span> Equinox</a>
@@ -293,13 +292,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       </div>
     </div>
   </div>
-</div>
 
-<!-- ============================================================ -->
-<!-- PANEL 3: PRECESSIE -->
-<!-- ============================================================ -->
-<div class="panel" id="panelPrecessie">
-  <div class="card">
+  <!-- PRECESSIE SECTIE (zelfde pagina als geboortedatum) -->
+  <div class="card" style="margin-top:20px">
     <h2><span class="mi" style="color:var(--cyan)">public</span> Precessie van de Aardas</h2>
     <p style="font-size:12px;color:var(--tx2);margin-bottom:16px">
       De aardas maakt in ~26.000 jaar een volledige cirkel (<span class="astro-tooltip" data-tooltip="De aardas draait als een tol met een cyclus van ~26.000 jaar. Hierdoor verschuiven de sterrenbeelden ten opzichte van de kalender.">precessie</span>). Hierdoor verschuift het lentepunt langzaam door de sterrenbeelden langs de <span class="astro-tooltip" data-tooltip="De denkbeeldige lijn die de baan van de zon langs de sterrenhemel volgt.">ecliptica</span>.
@@ -330,7 +325,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 </div>
 
 <!-- ============================================================ -->
-<!-- PANEL 4: PLANETEN -->
+<!-- PANEL 3: PLANETEN (was 4) -->
 <!-- ============================================================ -->
 <div class="panel" id="panelPlaneten">
   <div class="row">
@@ -791,7 +786,7 @@ function showPanel(id){
   event.target.closest('.tab').classList.add('active');
   if(id==='sky') updateSky();
   if(id==='planeten'){ planetNow(); }
-  if(id==='precessie') updatePrecess();
+  if(id==='precessie' || id==='horoscope') updatePrecess();
 }
 
 // ============================================================
